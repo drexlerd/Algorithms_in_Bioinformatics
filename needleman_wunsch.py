@@ -178,9 +178,9 @@ if __name__ == '__main__':
     parser.add_argument("seq1_fasta_fn", type=str)
     parser.add_argument("seq2_fasta_fn", type=str)
     parser.add_argument("subst_matrix_fn", type=str)
-    parser.add_argument("is_distance_fn", type=bool)
     parser.add_argument("cost_gap_open", type=int)
-    parser.add_argument("complete_traceback", type=bool)
+    parser.add_argument("--d", "--is_distance_fn", action='store_true')
+    parser.add_argument("--c", "--complete_traceback", action='store_true')
     args = parser.parse_args()
     # run Needleman-Wunsch with some parameters
     nw = NeedlemanWunsch()
@@ -188,6 +188,6 @@ if __name__ == '__main__':
         args.seq1_fasta_fn,
         args.seq2_fasta_fn,
         args.subst_matrix_fn,
-        args.is_distance_fn,
+        args.d,
         args.cost_gap_open,
-        args.complete_traceback))
+        args.c))
