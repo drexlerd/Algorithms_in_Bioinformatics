@@ -12,6 +12,7 @@ class NeedlemanWunschBase(metaclass=abc.ABCMeta):
             seq1_fasta_fn,
             seq2_fasta_fn,
             subst_matrix_fn,
+            is_distance_fn,
             cost_gap_open,
             complete_traceback):
         """
@@ -21,6 +22,7 @@ class NeedlemanWunschBase(metaclass=abc.ABCMeta):
             seq1_fasta_fn: path to fasta file containing first sequence
             seq2_fasta_fn: path to fasta file containing second sequence
             subst_matrix_fn: path to substitution matrix
+            is_distance_fn: True, if distance matrix is used
             cost_gap_open: cost to open a gap
             complete_traceback: If True, return all optimal alignments. Otherwise choose a random alignment.
 

@@ -12,18 +12,23 @@ def test_example():
     """Test if run function can be called."""
 
     gt = Gotoh()
-    result = gt.run("data/sequence1.fa",
-                    "data/sequence2.fa",
-                    "data/blosum62.txt",
+    result = gt.run("data/sequence1.fasta",
+                    "data/sequence2.fasta",
+                    "data/test_scoring_similarity.txt",
+                    False,
                     5,
-                    20,
-                    False)
-    (id_seq1, seq1, id_seq2, seq2, score, alignments) = result
+                    1,  
+                    True)
 
-    assert id_seq1 == "idA"
-    assert id_seq2 == "idB"
-    assert seq1 == "FancySequenceA"
-    assert seq2 == "FancysequenceB"
-    assert score == 1000
-    assert alignments[0] == ("Fancy_SequenceA_",
-                             "Fancys_equence_B")
+    assert result[0][0][0].id == "idA"
+    assert result[0][0][1].id == "idB"
+    assert str(result[0][0][0].seq) == "TCCGA"
+    assert str(result[0][0][1].seq) == "TACGCAGA"
+    assert result[0][0][3] == -3
+    assert len(result[0][0][2]) == 3
+    assert result[0][0][2][0] == ("T___CCGA",
+                             "TACGCAGA")
+    assert result[0][0][2][1] == ("TCC___GA",
+                             "TACGCAGA")
+    assert result[0][0][2][2] == ("TCCG___A",
+                             "TACGCAGA")

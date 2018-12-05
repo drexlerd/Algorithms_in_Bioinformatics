@@ -12,20 +12,21 @@ def test_example():
     """Example testing the dummy implementation."""
 
     nw = NeedlemanWunsch()
-    result = nw.run("data/sequence1.fa",
-                    "data/sequence2.fa",
-                    "data/blosum62.txt",
-                    5,
-                    False)
-    (id_seq1, seq1, id_seq2, seq2, score, alignments) = result
+    result = nw.run("data/sequence1.fasta",
+                    "data/sequence2.fasta",
+                    "data/test_scoring_distance.txt",
+                    True,
+                    1,
+                    True)
 
-    assert id_seq1 == "idA"
-    assert id_seq2 == "idB"
-    assert seq1 == "FancySequenceA"
-    assert seq2 == "FancysequenceB"
-    assert score == 1000
-    assert alignments[0] == ("Fancy_SequenceA_",
-                             "Fancys_equence_B")
+    assert result[0][0][0].id == "idA"
+    assert result[0][0][1].id == "idB"
+    assert str(result[0][0][0].seq) == "TCCGA"
+    assert str(result[0][0][1].seq) == "TACGCAGA"
+    assert result[0][0][3] == -2
+    assert len(result[0][0][2]) == 1
+    assert result[0][0][2][0] == ("T_C_C_GA",
+                             "TACGCAGA")
 
 
 # def test_example_fail():
