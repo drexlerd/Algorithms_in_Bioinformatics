@@ -14,3 +14,4 @@ def test_scoring_matrix():
 
     # gap score
     assert scoring_matrix.score("*", "A") == -4
+    

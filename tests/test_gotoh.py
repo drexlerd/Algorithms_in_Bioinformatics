@@ -12,7 +12,7 @@ def test_example():
     """Test if run function can be called."""
 
     gt = Gotoh()
-    result = gt.run("data/sequence1.fasta",
+    result, info = gt.run("data/sequence1.fasta",
                     "data/sequence2.fasta",
                     "data/test_scoring_similarity.txt",
                     False,

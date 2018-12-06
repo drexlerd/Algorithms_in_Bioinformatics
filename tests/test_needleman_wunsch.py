@@ -12,7 +12,7 @@ def test_example():
     """Example testing the dummy implementation."""
 
     nw = NeedlemanWunsch()
-    result = nw.run("data/sequence1.fasta",
+    result, info = nw.run("data/sequence1.fasta",
                     "data/sequence2.fasta",
                     "data/test_scoring_distance.txt",
                     True,

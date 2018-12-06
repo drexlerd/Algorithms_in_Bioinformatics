@@ -1,4 +1,6 @@
 {
+  "test_fasta_parser.py": true,
   "test_gotoh.py": true,
-  "test_needleman_wunsch.py": true
+  "test_needleman_wunsch.py": true,
+  "test_scoring_matrix.py": true
 }

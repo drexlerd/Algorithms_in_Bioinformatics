@@ -1,9 +1,10 @@
 from prakt.gt import GotohBase
-from prakt.fasta_parser.fasta_parser import parse_fasta
+from prakt.fasta_parser.fasta_parser import parse_fasta, check_sequences_alphabet, SequenceType
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix, MetricType
 from prakt.basis_classes.cell import Cell
 from prakt.util.util import Min, Max, compute_traceback
 from enum import Enum
+import argparse
 
 
 class Case(Enum):
@@ -14,6 +15,11 @@ class Case(Enum):
     GAP_SEQ1_Q = 4  # extending gap in seq1
     GAP_SEQ2_D = 5  # opening gap in seq2
     GAP_SEQ2_P = 6  # extending gap in seq2
+
+
+class Info(Enum):
+    OK = 0,
+    WRONG_ALPHABET = 1,
 
 
 @GotohBase.register
@@ -238,6 +244,11 @@ class Gotoh(GotohBase):
             records_f1 = parse_fasta(seq1_fasta_fn)
             records_f2 = parse_fasta(seq2_fasta_fn)
 
+            # check if the sequences are legal
+            if not check_sequences_alphabet(records_f1, SequenceType.PROTEIN) \
+              or not check_sequences_alphabet(records_f2, SequenceType.PROTEIN):
+                return None, Info.WRONG_ALPHABET
+
             # init result array
             result = [[None for _ in records_f2] for _ in records_f1]
 
@@ -249,4 +260,49 @@ class Gotoh(GotohBase):
                     seq2 = str(record2.seq)
                     score, alignments = self.compute_optimal_alignments(seq1, seq2, subst_matrix_fn, is_distance_fn, affine_cost_gap_open, affine_cost_gap_extend, complete_traceback)
                     result[i][j] = (record1, record2, alignments, score)
-            return result
+            return result, Info.OK
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Gotoh command line tool")
+    parser.add_argument("seq1_fasta_fn", type=str)
+    parser.add_argument("seq2_fasta_fn", type=str)
+    parser.add_argument("subst_matrix_fn", type=str)
+    parser.add_argument("affine_cost_gap_open", type=int)
+    parser.add_argument("affine_cost_gap_extend", type=int)
+    parser.add_argument("--d", "--is_distance_fn", action='store_true')
+    parser.add_argument("--c", "--complete_traceback", action='store_true')
+    args = parser.parse_args()
+    # run Needleman-Wunsch with some parameters
+    gt = Gotoh()
+
+    result, info = gt.run(
+        args.seq1_fasta_fn,
+        args.seq2_fasta_fn,
+        args.subst_matrix_fn,
+        args.d,
+        args.affine_cost_gap_open,
+        args.affine_cost_gap_extend,
+        args.c)
+
+    if info == Info.WRONG_ALPHABET:
+        print("Wrong alphabet in sequences")
+        exit(1)
+
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("Gotoh - Results")
+    print("Scoring function: %s" % (args.subst_matrix_fn))
+    print("Scoring type: %s" % ("Distance" if args.d else "Similarity"))
+    print("Total amount of optimal aligmments: %d" % (len(result)))
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    seqs1_size = len(result)
+    seqs2_size = len(result[0])
+    for i in range(seqs1_size):
+        for j in range(seqs2_size):
+            print("Optimal pairwise alignments of sequences S_%d and S_%d" % (i+1,seqs1_size+j+1))
+            score = result[i][j][3]
+            print("Optimal Score: %.2f" % (score))
+            for a in result[i][j][2]:
+                print(a[0])
+                print(a[1])
+                print()
