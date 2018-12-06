@@ -2,13 +2,18 @@ from prakt.xpgma import XpgmaBase
 from needleman_wunsch import NeedlemanWunsch
 from prakt.fasta_parser.fasta_parser import parse_fasta
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix
+import argparse
 
 
 class Node(object):
     def __init__(self, seq_record=None):
+        # leaf nodes contain a sequence record
         self.seq_record = seq_record
+        # children for traversing
         self.children = None
+        # distance for setting weights of new edges 
         self.distance = 0
+        # cluster size needed in upgma computation
         self.cluster_size = 1
     
     def set_children(self, children_list):
@@ -25,6 +30,17 @@ class Node(object):
         
     def get_distance(self):
         return self.distance
+        
+    def get_seq_record(self):
+        return self.seq_record
+
+    def get_children(self):
+        return self.children
+        
+    def is_leaf(self):
+        if self.children is None:
+            return False
+        return True
 
     def __repr__(self):
         return "distance=%.2f\n" % (self.distance)
@@ -34,6 +50,9 @@ class Edge(object):
     def __init__(self, weight=0, succ=None):
         self.weight = weight
         self.succ = succ
+
+    def __repr__(self):
+        return "Edge weight: %.2f" % (self.weight)
             
 
 @XpgmaBase.register
@@ -86,7 +105,7 @@ class XPGMA(XpgmaBase):
             # set distances to other clusters (according to UPGMA)
             for ck in l:
                 # need to take max to end up with the value in upper triangle matrix
-                m[ck][new_cluster_index] = (max(m[ck][ci], m[ci][ck]) + max(m[ck][cj], m[cj][ck])) / 2
+                m[ck][new_cluster_index] = ((m[ck][ci] + m[ci][ck]) + (m[ck][cj] + m[cj][ck])) / 2
             # add new index
             l.append(new_cluster_index)
         return new_cluster_node, n
@@ -118,10 +137,11 @@ class XPGMA(XpgmaBase):
             # set distances to other clusters (according to UPGMA)
             for ck in l:
                 # need to take max to end up with the value in upper triangle matrix
-                m[ck][new_cluster_index] = (ci_cluster_size * max(m[ck][ci], m[ci][ck]) + cj_cluster_size * max(m[ck][cj], m[cj][ck])) / (ci_cluster_size + cj_cluster_size)
+                m[ck][new_cluster_index] = (ci_cluster_size * (m[ck][ci] + m[ci][ck]) + cj_cluster_size * (m[ck][cj] + m[cj][ck])) / (ci_cluster_size + cj_cluster_size)
             # add new index
             l.append(new_cluster_index)
         return new_cluster_node, n
+
 
     def run(self,
             seq_fasta_fn,
@@ -143,7 +163,7 @@ class XPGMA(XpgmaBase):
 
             # cluster distance matrix index to Node mapping
             initial_cluster = [Node(seq_records[i]) for i in range(len(seq_records))]
-            n = dict(zip(list(range(len(initial_cluster)), initial_cluster)))
+            n = dict(zip(list(range(len(initial_cluster))), initial_cluster))
 
             # compute pairwise distances using NW
             # Note: no check if matrix is distance matrix
@@ -161,8 +181,26 @@ class XPGMA(XpgmaBase):
                 for j in range(i+1, len(seqs)):
                     m[i][j] = result[i][j][3]
 
+            if clustering == "wpgma":
+                return self.generate_wpgma(m, l, n)
+            elif clustering == "upgma":
+                return self.generate_upgma(m, l, n)
+
 
             
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="XPGMA command line tool")
+    parser.add_argument("seq_fasta_fn", type=str)
+    parser.add_argument("subst_matrix_fn", type=str)
+    parser.add_argument("cost_gap_open", type=int)
+    parser.add_argument('clustering', choices=['wpgma', 'upgma'])
+    args = parser.parse_args()
+
+    xpgma = XPGMA()
+
+    xpgma, n = xpgma.run(args.seq_fasta_fn, args.subst_matrix_fn, args.cost_gap_open, args.clustering)
+
+    print(xpgma)
 
             
 
