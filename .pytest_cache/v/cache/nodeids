@@ -5,5 +5,6 @@
   "tests/test_needleman_wunsch.py::test_instance",
   "tests/test_needleman_wunsch.py::test_example",
   "tests/test_scoring_matrix.py::test_scoring_matrix",
-  "tests/test_xpgma.py::test_example"
+  "tests/test_xpgma.py::test_generate_wpgma",
+  "tests/test_xpgma.py::test_generate_upgma"
 ]

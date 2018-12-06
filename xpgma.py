@@ -8,13 +8,20 @@ class Node(object):
     def __init__(self, seq_record=None):
         self.seq_record = seq_record
         self.children = None
-        self.distance = 0  # distance to leaf node (Note: this is enough for UPGMA but not for WPGMA)
+        self.distance = 0
+        self.cluster_size = 1
     
     def set_children(self, children_list):
         self.children = children_list
 
     def set_distance(self, distance):
         self.distance = distance
+
+    def set_cluster_size(self, value):
+        self.cluster_size = value
+
+    def get_cluster_size(self):
+        return self.cluster_size
         
     def get_distance(self):
         return self.distance
@@ -49,7 +56,7 @@ class XPGMA(XpgmaBase):
         return min_ci, min_cj, min_distance
 
                 
-    def generate_upgma(self, m, l, n):
+    def generate_wpgma(self, m, l, n):
         """
         Args:
           m (list(list(int))): cluster distance matrix (upper triangle matrix)
@@ -64,6 +71,7 @@ class XPGMA(XpgmaBase):
                 print()
             # now merge ci and cj
             new_cluster_node = Node()
+            # new_cluster_node.set_cluster_size(n[ci].get_cluster_size() + n[cj].get_cluster_size())
             # set edge weights (according to UPGMA)
             e1 = Edge(weight=min_distance/2 - n[ci].get_distance(), succ=n[ci])
             e2 = Edge(weight=min_distance/2 - n[cj].get_distance(), succ=n[cj])
@@ -84,6 +92,36 @@ class XPGMA(XpgmaBase):
         return new_cluster_node, n
 
 
+    def generate_upgma(self, m, l, n):
+        for new_cluster_index in range(len(l), len(m)):  # compute all the cluster merges
+            ci, cj, min_distance = self.find_smallest_distance_clusters(m, l)
+            for i in range(len(l)):
+                for j in range(len(l)):
+                    print("%5.1f" % (m[l[i]][l[j]]), end="")
+                print()
+            # merge ci and cj
+            new_cluster_node = Node()
+            ci_cluster_size = n[ci].get_cluster_size()
+            cj_cluster_size = n[cj].get_cluster_size()
+            new_cluster_node.set_cluster_size(ci_cluster_size + cj_cluster_size)
+            # set edge weights (according to UPGMA)
+            e1 = Edge(weight=min_distance/2 - n[ci].get_distance(), succ=n[ci])
+            e2 = Edge(weight=min_distance/2 - n[cj].get_distance(), succ=n[cj])
+            # set child edges
+            new_cluster_node.set_children([e1, e2])
+            new_cluster_node.set_distance(min_distance/2)
+            # add node in dict
+            n[new_cluster_index] = new_cluster_node
+            # remove indices from l
+            l.remove(ci)
+            l.remove(cj)
+            # set distances to other clusters (according to UPGMA)
+            for ck in l:
+                # need to take max to end up with the value in upper triangle matrix
+                m[ck][new_cluster_index] = (ci_cluster_size * max(m[ck][ci], m[ci][ck]) + cj_cluster_size * max(m[ck][cj], m[cj][ck])) / (ci_cluster_size + cj_cluster_size)
+            # add new index
+            l.append(new_cluster_index)
+        return new_cluster_node, n
 
     def run(self,
             seq_fasta_fn,
