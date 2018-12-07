@@ -63,7 +63,7 @@ class XPGMA(XpgmaBase):
         min_distance = float("inf")
         min_ci = None
         min_cj = None
-        print(l)
+        # print(l)
         for i in range(len(l)):
             for j in range(i+1, len(l)):
                 c1 = l[i]
@@ -84,10 +84,10 @@ class XPGMA(XpgmaBase):
         """
         for new_cluster_index in range(len(l), len(m)):  # compute all the cluster merges
             ci, cj, min_distance = self.find_smallest_distance_clusters(m, l)
-            for i in range(len(l)):
-                for j in range(len(l)):
-                    print("%5.1f" % (m[l[i]][l[j]]), end="")
-                print()
+            #for i in range(len(l)):
+            #    for j in range(len(l)):
+            #        print("%5.1f" % (m[l[i]][l[j]]), end="")
+            #    print()
             # now merge ci and cj
             new_cluster_node = Node()
             # new_cluster_node.set_cluster_size(n[ci].get_cluster_size() + n[cj].get_cluster_size())
@@ -114,10 +114,10 @@ class XPGMA(XpgmaBase):
     def generate_upgma(self, m, l, n):
         for new_cluster_index in range(len(l), len(m)):  # compute all the cluster merges
             ci, cj, min_distance = self.find_smallest_distance_clusters(m, l)
-            for i in range(len(l)):
-                for j in range(len(l)):
-                    print("%5.1f" % (m[l[i]][l[j]]), end="")
-                print()
+            #for i in range(len(l)):
+            #    for j in range(len(l)):
+            #        print("%5.1f" % (m[l[i]][l[j]]), end="")
+            #    print()
             # merge ci and cj
             new_cluster_node = Node()
             ci_cluster_size = n[ci].get_cluster_size()

@@ -25,6 +25,9 @@ class ScoringMatrix(object):
         self.position_to_symbol_col = dict()
         self.position_to_symbol_row = dict()
 
+        # alphabet
+        self.alphabet = []
+
         # the type of the scoring metric (distance or similarity)
         self.metric_type = MetricType.SIMILARITY
 
@@ -49,6 +52,7 @@ class ScoringMatrix(object):
                     symbol_col_list = line_list
                     self.symbol_to_position_col = dict(zip(symbol_col_list, range(len(symbol_col_list))))
                     self.position_to_symbol_col = dict(zip(range(len(symbol_col_list)), symbol_col_list))
+                    self.alphabet = symbol_col_list
                 else:
                     line_list_scores = [int(i) for i in line_list[1:]]
                     line_symbol = line_list[0]

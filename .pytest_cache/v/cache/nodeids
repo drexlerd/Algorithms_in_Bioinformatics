@@ -1,9 +1,12 @@
 [
   "tests/test_fasta_parser.py::test_parse_fast",
+  "tests/test_feng_doolittle.py::test_count_occurences_symbol_in_seq",
+  "tests/test_feng_doolittle.py::test_similarity_to_distance",
   "tests/test_gotoh.py::test_instance",
   "tests/test_gotoh.py::test_example",
   "tests/test_needleman_wunsch.py::test_instance",
-  "tests/test_needleman_wunsch.py::test_example",
+  "tests/test_needleman_wunsch.py::test_example_distance",
+  "tests/test_needleman_wunsch.py::test_example_similarity",
   "tests/test_scoring_matrix.py::test_scoring_matrix",
   "tests/test_xpgma.py::test_generate_wpgma",
   "tests/test_xpgma.py::test_generate_upgma"
