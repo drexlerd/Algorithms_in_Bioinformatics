@@ -11,6 +11,7 @@ class FengDoolittleBase(metaclass=abc.ABCMeta):
     def run(self,
             seq_fasta_fn,
             subst_matrix_fn,
+            is_distance_fn,
             cost_gap_open,
             clustering):
         """
