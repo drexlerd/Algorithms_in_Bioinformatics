@@ -11,10 +11,12 @@ class FengDoolittle(FengDoolittleBase):
 
     def compute_msa(self, 
                     xpgma_root_node : Node,
+                    nw : NeedlemanWunsch,
                     scoring_matrix,
                     cost_gap_open):
-        nw = NeedlemanWunsch()
-        return self.compute_msa_rec(xpgma_root_node, nw, scoring_matrix, cost_gap_open)
+        msa_with_neutral_elements = self.compute_msa_rec(xpgma_root_node, nw, scoring_matrix, cost_gap_open)
+        return self.replace_neutral_symbol_with_gap_symbol(msa_with_neutral_elements)
+        
 
 
     def align_group_to_group_by_group(self, min_i, min_j, group1, group2, group3):
@@ -46,7 +48,7 @@ class FengDoolittle(FengDoolittleBase):
                     result[j] += "_"
             if c2 == group2[min_j][i2]:
                 for j in range(len(group1), len(group1) + len(group2)):
-                    result[j] += group2[j][i2]
+                    result[j] += group2[j-len(group1)][i2]
                 i2 += 1
             else:
                 for j in range(len(group1), len(group1) + len(group2)):
@@ -74,9 +76,9 @@ class FengDoolittle(FengDoolittleBase):
         for i in range(len(group1)):
             for j in range(len(group2)):
                 score, alignments = nw.compute_optimal_alignments(group1[i], group2[j], scoring_matrix, cost_gap_open, complete_traceback=False)
+                pairwise_alignment = alignments[0]
                 if scoring_matrix.metric_type == MetricType.SIMILARITY:
-                    # transform to distance metric
-                    pairwise_alignment = alignments[0]
+                    # transform to distance metric                    
                     score = self.similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open)
                 if score < min_score:
                     min_score = score
@@ -96,6 +98,10 @@ class FengDoolittle(FengDoolittleBase):
           list(str): The alignment with replacement
         """
         return [string.replace("_", "X") for string in group]
+
+
+    def replace_neutral_symbol_with_gap_symbol(self, group):
+        return [string.replace("X", "_") for string in group]
 
 
     def compute_msa_rec(self, 
@@ -124,17 +130,25 @@ class FengDoolittle(FengDoolittleBase):
           list(str): A multiple sequence alignment
         """
         if node.is_leaf():
-            return [node.get_seq_record().seq]  # return the sequence as alignment of 1 sequence
+            group = [str(node.get_seq_record().seq)]
+            print("Base case")
+            print(group)
+            return group  # return the sequence as alignment of 1 sequence
         else:
             assert len(node.get_children()) == 2
             child1, child2 = node.get_children() 
             alignment1 = self.compute_msa_rec(child1.succ, nw, scoring_matrix, cost_gap_open)
             alignment2 = self.compute_msa_rec(child2.succ, nw, scoring_matrix, cost_gap_open)
+            print("Inductive case")
+            print(alignment1)
+            print(alignment2)
             # find pairwise alignment with minimal distance
             min_pairwise_alignment, min_i, min_j = self.find_best_pairwise_alignment(nw, scoring_matrix, cost_gap_open, alignment1, alignment2)
+            print(min_pairwise_alignment)
             # align according to best pairwise alignment and return new alignment
             alignment3 = self.align_group_to_group_by_group(min_i, min_j, alignment1, alignment2, min_pairwise_alignment)
             group3 = self.replace_gap_symbol_with_neutral_symbol(alignment3)
+            print(alignment3)
             return group3
 
 
@@ -223,5 +237,10 @@ class FengDoolittle(FengDoolittleBase):
         """
 
         xpgma = XPGMA()
-        xpgma, n = xpgma.run(seq_fasta_fn, subst_matrix_fn, cost_gap_open, clustering)
+        xpgma, _ = xpgma.run(seq_fasta_fn, subst_matrix_fn, cost_gap_open, clustering)
 
+        nw = NeedlemanWunsch()
+
+        scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn)
+
+        return self.compute_msa(xpgma, nw, scoring_matrix, cost_gap_open)

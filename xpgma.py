@@ -39,8 +39,9 @@ class Node(object):
         
     def is_leaf(self):
         if self.children is None:
-            return False
-        return True
+            return True
+        return False
+        
 
     def __repr__(self):
         return "distance=%.2f\n" % (self.distance)

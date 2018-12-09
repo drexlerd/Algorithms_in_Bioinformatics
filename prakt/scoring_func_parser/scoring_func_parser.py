@@ -35,6 +35,16 @@ class ScoringMatrix(object):
 
         self._set_metric_type(is_distance_fn)
 
+        self._add_neutral_symbol()
+
+    
+    def _add_neutral_symbol(self):
+        self.symbol_to_position_col["X"] = len(self.symbol_to_position_col)
+        self.symbol_to_position_row["X"] = len(self.symbol_to_position_row)
+        for i in range(len(self.scoring_matrix[0])):
+            self.scoring_matrix[i].append(0)
+        self.scoring_matrix.append([0] * len(self.symbol_to_position_col))
+
 
     def _parse_scoring_func(self, filename):
         """Fill the symbol_to_position_col, symbol_to_position_row dictionaries and the scoring_matrix
