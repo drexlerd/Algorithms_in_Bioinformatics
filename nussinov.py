@@ -14,7 +14,8 @@ class Case(Enum):
 class Nussinov(NussinovBase):
     def is_base_pair(self, c1, c2):
         if c1 == "A" and c2 == "U" or c1 == "U" and c2 == "A" \
-          or c1 == "G" and c2 == "C" or c1 == "C" and c2 == "G":
+          or c1 == "G" and c2 == "C" or c1 == "C" and c2 == "G" \
+          or c1 == "G" and c2 == "U" or c1 == "U" and c2 == "G":
             return True
         return False
 
@@ -70,13 +71,14 @@ class Nussinov(NussinovBase):
             if case == Case.UNPAIRED:
                 structures.extend(self.traceback_rec(d, i, j-1, sequence))
             elif case == Case.PAIRED_SUCCESS:
-                s1 = self.traceback_rec(d, i, j)
+                pass
             elif case == Case.PAIRED_FAIL:
                 pass
         return structures
 
+
     def _is_traceback_base_case(self, cell):
-        if cell.i + 2 >= cell.j:
+        if cell.i + 2 > cell.j:
             return True
         return False
 
@@ -88,12 +90,7 @@ class Nussinov(NussinovBase):
 
         self.fill_matrix(d, sequence, loop_length=1)
 
-
-    def traceback(self, d, seq, complete_traceback):
-        tracebacks = compute_traceback(d[0][-1], all=complete_traceback)
-
-        structures = []
-        
+        return self.traceback_rec(d, i=1, j=len(sequence), sequence=sequence)    
         
 
 
