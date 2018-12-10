@@ -12,7 +12,13 @@ class Case(Enum):
 
 @NussinovBase.register
 class Nussinov(NussinovBase):
-    def is_base_pair(self, c1, c2):
+    def _is_base_pair(self, c1, c2):
+        """Returns True if c1 and c2 build a base pair and False otheriwse
+
+        Args:
+          c1 (char): A character
+          c2 (char): A character
+        """
         if c1 == "A" and c2 == "U" or c1 == "U" and c2 == "A" \
           or c1 == "G" and c2 == "C" or c1 == "C" and c2 == "G" \
           or c1 == "G" and c2 == "U" or c1 == "U" and c2 == "G":
@@ -21,6 +27,12 @@ class Nussinov(NussinovBase):
 
     
     def fill_matrix(self, d, sequence, loop_length=1):
+        """Inductive case of DP algorithm.
+
+        Args:
+          d (list(list(Cell))): The DP matrixs initialized to zero values
+          sequence (str): The given string
+        """
         min_loop_length = 2
         for l in range(min_loop_length, len(sequence) + 1):
             for i in range(1, len(sequence) - l + 1):
@@ -31,7 +43,7 @@ class Nussinov(NussinovBase):
                 case_dist = [(d[i][j-1].value, (i, j, None), Case.UNPAIRED)]
                 
                 for k in range(i, j - loop_length):
-                    if self.is_base_pair(sequence[k-1],sequence[j-1]):
+                    if self._is_base_pair(sequence[k-1],sequence[j-1]):
                         # print("%d, %d, %s, %s" % (i, j, sequence[k-1], sequence[j-1]))
                         case_dist.append((d[i][k-1].value + d[k+1][j-1].value + 1, (i, j, k), Case.PAIRED_SUCCESS))
                     else:
@@ -52,39 +64,60 @@ class Nussinov(NussinovBase):
         #    print()
 
 
-    def traceback_rec(self, d, i, j, structure_index=0, structures=[(0, None)]):
-        """Initial call: traceback_rec(d, 0, len(sequence), 0, [(0, None)])
+    def traceback_rec(self, d, i, j, structure_index=0, abstract_structures=[(0, None)]):
+        """Computes abstract treelike structure representation of all optimal pairing.
+                
+        Initial call: traceback_rec(d, 0, len(sequence), 0, [(0, None)])
 
         Args:
           d (list(list(Cell))): DP matrix (with traceback pointers)
           i (int): smallest index in sequence (included)
           j (int): biggest index in sequence (included)
-          structure_index (int): the index in structures we are currently at in our recursion
-          structure (list(tuple(int,tuple(int,int)))): pointer to head recursion + a tuples of base pairings
+          structure_index (int): the index in abstract_structures we are currently at in our recursion
+          abstract_structures (list(tuple(int,tuple(int,int)))): pointer to head recursion + a tuples of base pairings
+
+        Returns:
+          abstract_structures (list(tuple(int,tuple(int,int)))): pointer to head recursion + a tuples of base pairings
         """
         current_cell = d[i][j]
         if not self._is_traceback_base_case(current_cell):
             for (i, j, k), case in current_cell.pre:
                 # copy the structure because of multiple predecessor
                 if case == Case.UNPAIRED:
-                    self.traceback_rec(d, i, j-1, structure_index, structures)
+                    self.traceback_rec(d, i, j-1, structure_index, abstract_structures)
                 elif case == Case.PAIRED_SUCCESS:
-                    structures.append((structure_index, (j, k)))
-                    self.traceback_rec(d, i, k-1, len(structures) - 1, structures)
-                    self.traceback_rec(d, k + 1, j - 1, len(structures) - 1, structures)
+                    abstract_structures.append((structure_index, (j, k)))
+                    self.traceback_rec(d, i, k-1, len(abstract_structures) - 1, abstract_structures)
+                    self.traceback_rec(d, k + 1, j - 1, len(abstract_structures) - 1, abstract_structures)
                 elif case == Case.PAIRED_FAIL:
-                    self.traceback_rec(d, i, k-1, len(structures) - 1, structures)
-                    self.traceback_rec(d, k + 1, j - 1, len(structures) - 1, structures)
-            return structures
+                    self.traceback_rec(d, i, k-1, len(abstract_structures) - 1, abstract_structures)
+                    self.traceback_rec(d, k + 1, j - 1, len(abstract_structures) - 1, abstract_structures)
+            return abstract_structures
 
 
     def _is_traceback_base_case(self, cell):
+        """Helper function of traceback_rec.
+        Returns True if the cell of the initialization was reached
+
+        Args:
+          cell (Cell): A cell for which to test if its a base case cell
+        """
         if cell.i + 2 > cell.j:
             return True
         return False
 
 
     def compute_optimal_abstract_structure(self, sequence, complete_traceback):
+        """For a given sequence compute the abstract structure
+
+        Args:
+          sequence (str): A string
+          complete_traceback (bool): True, full traceback
+
+        Returns:
+          abstract_structures (list(tuple(int,tuple(int,int)))): pointer to head recursion + a tuples of base pairings
+          amount_pairs (int): The amount of base pair in optimal abstract structure
+        """
         d = [[Cell(i, j) for j in range(len(sequence) + 1)] for i in range(len(sequence) + 1)]
 
         self.fill_matrix(d, sequence, loop_length=1)
@@ -94,10 +127,17 @@ class Nussinov(NussinovBase):
         return abstract_structures, d[1][len(sequence)].value
         
 
-    def convert_abstract_structure_to_structure(self, sequence, amount_pairs, abstract_structure):
+    def convert_abstract_structure_to_structure(self, sequence, amount_pairs, abstract_structures):
+        """Converts an abstract treelike structure into a human readable form.
+
+        Args:
+          sequence (str): A string
+          amount_pairs (int): The amount of base pair in optimal abstract structure
+          abstract_structures (list(tuple(int,tuple(int,int)))): pointer to head recursion + a tuples of base pairings
+        """
         structures = []
         # track which abstract structures are already consumed
-        for index, (j, k) in reversed(abstract_structure[1:]):
+        for index, (j, k) in reversed(abstract_structures[1:]):
             count = 0
             r = ["."] * len(sequence)
             while True:
@@ -106,13 +146,10 @@ class Nussinov(NussinovBase):
                 count += 1
                 if count == amount_pairs:
                     structures.append("".join(r))
-                if abstract_structure[index][1] == None:
+                if abstract_structures[index][1] == None:
                     break
-                index, (j, k) = abstract_structure[index]
+                index, (j, k) = abstract_structures[index]
         return structures
-
-
-
 
 
     def run(self,
