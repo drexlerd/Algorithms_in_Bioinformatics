@@ -23,6 +23,9 @@ class Cell(object):
     def GetValue(self):
         return self.value
 
+    def get_position(self):
+        return self.i, self.j
+
 
 class MatrixType(Enum):
     D = 0

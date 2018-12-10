@@ -8,6 +8,7 @@
   "tests/test_needleman_wunsch.py::test_instance",
   "tests/test_needleman_wunsch.py::test_example_distance",
   "tests/test_needleman_wunsch.py::test_example_similarity",
+  "tests/test_nussinov.py::test_fill_matrix",
   "tests/test_scoring_matrix.py::test_scoring_matrix",
   "tests/test_xpgma.py::test_generate_wpgma",
   "tests/test_xpgma.py::test_generate_upgma",

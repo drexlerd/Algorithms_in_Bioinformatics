@@ -35,7 +35,7 @@ class ScoringMatrix(object):
 
         self._set_metric_type(is_distance_fn)
 
-        self._add_neutral_symbol()
+        # self._add_neutral_symbol()  # added special case in nw for that
 
     
     def _add_neutral_symbol(self):

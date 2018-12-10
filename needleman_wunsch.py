@@ -54,11 +54,16 @@ class NeedlemanWunsch(NeedlemanWunschBase):
                 # fill the matrix
                 x_i = seq1[i-1]
                 y_j = seq2[j-1]
-                score_aligning = scoring_matrix.score(x_i, y_j)
-
-                sequence = [(d[i-1][j-1].value + score_aligning, Case.ALIGNED), 
-                            (d[i][j-1].value + cost_gap_open, Case.SEQ1_GAPPED), 
-                            (d[i-1][j].value + cost_gap_open, Case.SEQ2_GAPPED)]
+                
+                if x_i == "X" or y_j == "X":  # used in feng doolittle
+                    sequence = [(d[i-1][j-1].value, Case.ALIGNED), 
+                                (d[i][j-1].value, Case.SEQ1_GAPPED), 
+                                (d[i-1][j].value, Case.SEQ2_GAPPED)]
+                else:
+                    score_aligning = scoring_matrix.score(x_i, y_j)
+                    sequence = [(d[i-1][j-1].value + score_aligning, Case.ALIGNED), 
+                                (d[i][j-1].value + cost_gap_open, Case.SEQ1_GAPPED), 
+                                (d[i-1][j].value + cost_gap_open, Case.SEQ2_GAPPED)]
                 result_sequence = function_operation(sequence)
                 # store result of the recursion
                 d[i][j].SetValue(result_sequence[0][0])  # set value
@@ -85,7 +90,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
             # current positions in the sequences
             i = 0
             j = 0
-            for case in reversed(traceback):
+            for node, case in reversed(traceback):
                 if case == Case.ALIGNED:  # aligned
                     alignment_seq1 += seq1[i]
                     alignment_seq2 += seq2[j]

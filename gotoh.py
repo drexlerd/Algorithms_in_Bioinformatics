@@ -145,7 +145,7 @@ class Gotoh(GotohBase):
             # current positions in the sequences
             i = 0
             j = 0
-            for case in reversed(traceback):  # dfs started at bottom right cell => need to reverse it
+            for node, case in reversed(traceback):  # dfs started at bottom right cell => need to reverse it
                 #print(case)
                 if case in [Case.ALIGN_D]:  # aligned
                     alignment_seq1 += seq1[i]

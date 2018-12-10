@@ -62,7 +62,7 @@ def compute_traceback_dfs(current_cell, current_path=[]):
     # recursive case: inner node
     tracebacks = []
     for pre in current_cell.pre:
-        # add the case information to the path, current implementation has runtime O(n^2) in worst case
-        # even for single optimal alignment
-        tracebacks.extend(compute_traceback_dfs(pre[0], current_path + [pre[1]]))
+        # current_path.append(pre)
+        # Note: current_path + [pre] instead of append because he have to copy the path
+        tracebacks.extend(compute_traceback_dfs(pre[0], current_path + [pre]))
     return tracebacks
