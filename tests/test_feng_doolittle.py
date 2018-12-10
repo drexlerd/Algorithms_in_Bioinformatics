@@ -38,4 +38,4 @@ def test_feng_doolittle():
             1,
             "wpgma")
 
-    print(msa)
+    # print(msa)

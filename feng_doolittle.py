@@ -131,24 +131,24 @@ class FengDoolittle(FengDoolittleBase):
         """
         if node.is_leaf():
             group = [str(node.get_seq_record().seq)]
-            print("Base case")
-            print(group)
+            #print("Base case")
+            #print(group)
             return group  # return the sequence as alignment of 1 sequence
         else:
             assert len(node.get_children()) == 2
             child1, child2 = node.get_children() 
             alignment1 = self.compute_msa_rec(child1.succ, nw, scoring_matrix, cost_gap_open)
             alignment2 = self.compute_msa_rec(child2.succ, nw, scoring_matrix, cost_gap_open)
-            print("Inductive case")
-            print(alignment1)
-            print(alignment2)
+            #print("Inductive case")
+            #print(alignment1)
+            #print(alignment2)
             # find pairwise alignment with minimal distance
             min_pairwise_alignment, min_i, min_j = self.find_best_pairwise_alignment(nw, scoring_matrix, cost_gap_open, alignment1, alignment2)
-            print(min_pairwise_alignment)
+            #print(min_pairwise_alignment)
             # align according to best pairwise alignment and return new alignment
             alignment3 = self.align_group_to_group_by_group(min_i, min_j, alignment1, alignment2, min_pairwise_alignment)
             group3 = self.replace_gap_symbol_with_neutral_symbol(alignment3)
-            print(alignment3)
+            #print(alignment3)
             return group3
 
 

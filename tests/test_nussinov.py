@@ -11,11 +11,28 @@ def test_fill_matrix():
     nussinov.fill_matrix(d, sequence, loop_length=1)
 
 
-def test_compute_optimal_structure():
+def test_compute_optimal_abstract_structure():
     nussinov = Nussinov()
 
     sequence = "GGUCCAC"
 
-    structures = nussinov.compute_optimal_structure(sequence, complete_traceback=True)
+    abstract_structures, amount = nussinov.compute_optimal_abstract_structure(sequence, complete_traceback=True)
 
-    print(structures)
+    assert amount == 2
+
+    assert abstract_structures == [(0, None), (0, (5, 1)), (1, (4, 2)), (0, (7, 1)), (3, (4, 2)), (3, (5, 2)), (3, (6, 3)), (0, (7, 2)), (7, (6, 3))]
+    # e.g. (0, None), (0, (5, 1)), (1, (4, 2)) => ((.))..
+
+
+def test_convert_abstract_structure_to_structure():
+    sequence = "GGUCCAC"
+
+    abstract_structures = [(0, None), (0, (5, 1)), (1, (4, 2)), (0, (7, 1)), (3, (4, 2)), (3, (5, 2)), (3, (6, 3)), (0, (7, 2)), (7, (6, 3))]
+
+    nussinov = Nussinov()
+
+    structures = nussinov.convert_abstract_structure_to_structure(sequence, 2, abstract_structures)
+
+    assert structures == ['.((..))', '(.(..))', '((..).)', '((.)..)', '((.))..']
+
+
