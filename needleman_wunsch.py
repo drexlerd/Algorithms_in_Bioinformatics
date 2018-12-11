@@ -1,3 +1,8 @@
+"""
+Module name: Needleman Wunsch
+Module author: dominik drexler <drexlerd@informatik.uni-freiburg.de>
+"""
+
 from prakt.nw import NeedlemanWunschBase
 from prakt.fasta_parser.fasta_parser import parse_fasta, check_sequences_alphabet, SequenceType
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix, MetricType
@@ -129,6 +134,9 @@ class NeedlemanWunsch(NeedlemanWunschBase):
           seq2 (str): The second sequence
           scoring_matrix (ScoringMatrix): The scoring matrix
           complete_traceback (bool): If True, returns all tracebacks, else 1
+
+        Returns:
+          list(list(str)) : A 2D-array containing information about the pairwise optimal alignments
         """
 
         # dp matrix
@@ -169,10 +177,11 @@ class NeedlemanWunsch(NeedlemanWunschBase):
               seq2_fasta_fn (str): The relative path to a fasta file
               subst_matrix_fn (str): The relative path to a scoring matrix file
               is_distance_fn (bool): If True, handle scoring matrix as distance measure, else similarity measure
+              cost_gap_open (int): gap cost open
               complete_traceback (bool): If True, returns all tracebacks, else 1
 
             Returns:
-              List(List) : A 2D-array containing information about the pairwise optimal alignments
+              list(list(str)) : A 2D-array containing information about the pairwise optimal alignments
             """
             # scoring function
             scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, cost_gap_open)

@@ -1,3 +1,8 @@
+"""
+Module name: Gotoh
+Module author: dominik drexler <drexlerd@informatik.uni-freiburg.de>
+"""
+
 from prakt.gt import GotohBase
 from prakt.fasta_parser.fasta_parser import parse_fasta, check_sequences_alphabet, SequenceType
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix, MetricType
@@ -24,9 +29,6 @@ class Info(Enum):
 
 @GotohBase.register
 class Gotoh(GotohBase):
-    """Document me!"""
-
-
     def base_case_init(self, d, p, q, 
       seq1, seq2, 
       scoring_matrix):        
@@ -38,9 +40,6 @@ class Gotoh(GotohBase):
           q (matrix) DP matrix ending with gap in seq1
           seq1 (string): The first sequence
           seq2 (string): The second sequence
-          affine_cost_gap_open (int): Cost for opening a new gap
-          affine_cost_gap_extend (int): Cost for extending a gap
-          extreme_value (float): Maximum value used in recursion initialization, either infty or -infty
         """
 
         # base case 
@@ -72,9 +71,6 @@ class Gotoh(GotohBase):
           seq1 (string): The first sequence
           seq2 (string): The second sequence
           scoring_matrix (ScoringMatrix): The substitution matrix with its type (Similarity/Distance)
-          function_operation: Min-Maximization depending on Distance/Similarity
-          affine_cost_gap_open (int): Cost for opening a new gap
-          affine_cost_gap_extend (int): Cost for extending a gap
         """
         for i in range(1, len(seq1) + 1):
             for j in range(1, len(seq2) + 1):
@@ -163,16 +159,19 @@ class Gotoh(GotohBase):
 
 
     def compute_optimal_alignments(self, seq1, seq2, 
-      subst_matrix_fn, 
-      is_distance_fn, 
-      affine_cost_gap_open, 
-      affine_cost_gap_extend, 
+      scoring_matrix,
       complete_traceback):
         """Computes optimal alignment(s) between two given sequences.
+
+        Args:
+          seq1 (str): The first sequence
+          seq2 (str): The second sequence
+          scoring_matrix (ScoringMatrix): The scoring matrix
+          complete_traceback (bool): If True, returns all tracebacks, else 1
+
+        Returns:
+          list(list(str)) : A 2D-array containing information about the pairwise optimal alignments
         """
-        # scoring function
-        scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, affine_cost_gap_open, affine_cost_gap_extend)
-        
         # ends with alignment
         d = [[Cell(i, j) for j in range(len(seq2) + 1)] for i in range(len(seq1) + 1) ]
         # ends with gap in seq2
@@ -220,9 +219,29 @@ class Gotoh(GotohBase):
             affine_cost_gap_open,
             affine_cost_gap_extend,
             complete_traceback):
+            """
+            Compute all optimal pairwise alignments between the sequences
+            in the given fasta file seq1_fasta_fn and seq2_fasta_fn
+
+            Args:
+              seq1_fasta_fn (str): The relative path to a fasta file
+              seq2_fasta_fn (str): The relative path to a fasta file
+              subst_matrix_fn (str): The relative path to a scoring matrix file
+              is_distance_fn (bool): If True, handle scoring matrix as distance measure, else similarity measure
+              affine_cost_gap_open (int): gap cost open
+              affine_cost_gap_extend (int): gap cost extend
+              complete_traceback (bool): If True, returns all tracebacks, else 1
+
+            Returns:
+              list(list(str)) : A 2D-array containing information about the pairwise optimal alignments
+            """
             # sequences with their ids
             records_f1 = parse_fasta(seq1_fasta_fn)
             records_f2 = parse_fasta(seq2_fasta_fn)
+
+            # scoring function
+            scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, affine_cost_gap_open, affine_cost_gap_extend)
+        
 
             # check if the sequences are legal
             if not check_sequences_alphabet(records_f1, SequenceType.PROTEIN) \
@@ -238,7 +257,7 @@ class Gotoh(GotohBase):
                     record2 = records_f2[j]
                     seq1 = str(record1.seq)
                     seq2 = str(record2.seq)
-                    score, alignments = self.compute_optimal_alignments(seq1, seq2, subst_matrix_fn, is_distance_fn, affine_cost_gap_open, affine_cost_gap_extend, complete_traceback)
+                    score, alignments = self.compute_optimal_alignments(seq1, seq2, scoring_matrix, complete_traceback)
                     result[i][j] = (record1, record2, alignments, score)
             return result, Info.OK
 
