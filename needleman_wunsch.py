@@ -26,8 +26,10 @@ class NeedlemanWunsch(NeedlemanWunschBase):
         """The initialization of the dynamic programming matrix d
 
         Args:
-          len_seq1 (int): The size of the first sequence
-          len_seq2 (int): The size of the second sequence
+          d (list(list(Cell))): The DP matrix of correct shapes
+          seq1 (str): The first sequence
+          seq2 (str): The second sequence
+          scoring_matrix (ScoringMatrix): The scoring matrix
         """
 
         # base case 
@@ -44,10 +46,10 @@ class NeedlemanWunsch(NeedlemanWunschBase):
         with given scoring function and function_operation
 
         Args:
+          d (list(list(Cell))): The preinitialized DP matrix
           seq1 (string): first sequence
           seq2 (string): second sequence
           scoring_matrix (ScoringMatrix): the scoring function object
-          function_operation (f(list(tuples))) : function returning all tuples with min/max tuple.item1
         """
         for i in range(1, len(seq1) + 1):
             for j in range(1, len(seq2) + 1):
@@ -81,6 +83,15 @@ class NeedlemanWunsch(NeedlemanWunschBase):
         """Given the dynamic programming matrix and the two sequences
         this function computes all optimal alignments and returns them
         or just 1 if the complete_traceback flag is set.
+
+        Args:
+          d (list(list(Cell))): The finished DP matrix with values and predecessor pointers
+          seq1 (str): The first sequence
+          seq2 (str): The second sequence
+          complete_traceback (bool): If True, returns all tracebacks, else 1
+
+        Returns:
+          list(list(str)): A list of optimal pairwise alignments
         """
         tracebacks = compute_traceback(d[-1][-1], all)
         alignments = []
@@ -111,6 +122,14 @@ class NeedlemanWunsch(NeedlemanWunschBase):
 
 
     def compute_optimal_alignments(self, seq1, seq2, scoring_matrix, complete_traceback):
+        """Computes optimal pairwise alignments between seq1 and seq2 with given scoring matrix
+
+        Args:
+          seq1 (str): The first sequence
+          seq2 (str): The second sequence
+          scoring_matrix (ScoringMatrix): The scoring matrix
+          complete_traceback (bool): If True, returns all tracebacks, else 1
+        """
 
         # dp matrix
         d = [[Cell(i, j) for j in range(len(seq2) + 1)] for i in range(len(seq1) + 1) ]
@@ -144,6 +163,13 @@ class NeedlemanWunsch(NeedlemanWunschBase):
             """
             Compute all optimal pairwise alignments between the sequences
             in the given fasta file seq1_fasta_fn and seq2_fasta_fn
+
+            Args:
+              seq1_fasta_fn (str): The relative path to a fasta file
+              seq2_fasta_fn (str): The relative path to a fasta file
+              subst_matrix_fn (str): The relative path to a scoring matrix file
+              is_distance_fn (bool): If True, handle scoring matrix as distance measure, else similarity measure
+              complete_traceback (bool): If True, returns all tracebacks, else 1
 
             Returns:
               List(List) : A 2D-array containing information about the pairwise optimal alignments
