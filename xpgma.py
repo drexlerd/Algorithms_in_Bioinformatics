@@ -1,3 +1,8 @@
+"""
+Module name: XPGMA
+Module author: dominik drexler <drexlerd@informatik.uni-freiburg.de>
+"""
+
 from prakt.xpgma import XpgmaBase
 from needleman_wunsch import NeedlemanWunsch
 from prakt.fasta_parser.fasta_parser import parse_fasta
@@ -7,6 +12,8 @@ import argparse
 
 
 class Node(object):
+    """This class represents a leaf node or an inner node in a XPGMA
+    """
     def __init__(self, seq_record=None):
         # leaf nodes contain a sequence record
         self.seq_record = seq_record
@@ -43,12 +50,13 @@ class Node(object):
             return True
         return False
         
-
     def __repr__(self):
         return "distance=%.2f\n" % (self.distance)
 
 
 class Edge(object):
+    """This class represents an edge in a XPGMA
+    """
     def __init__(self, weight=0, succ=None):
         self.weight = weight
         self.succ = succ
@@ -61,6 +69,10 @@ class Edge(object):
 class XPGMA(XpgmaBase):
     def find_smallest_distance_clusters(self, m, l):
         """Finds the two clusters which have minimal distance
+
+        Args:
+          m (list(list(int))): cluster distance matrix (upper triangle matrix)
+          l (list(int)): list containing the cluster indices of the root clusters
         """
         min_distance = float("inf")
         min_ci = None
@@ -78,11 +90,16 @@ class XPGMA(XpgmaBase):
 
                 
     def generate_wpgma(self, m, l, n):
-        """
+        """Compute a WPGMA
+
         Args:
           m (list(list(int))): cluster distance matrix (upper triangle matrix)
-          n (dict(int, Node)): Cluster distance matrix index to node mapping
-          l (list(int)): iterationlist
+          n (dict(int, Node)): cluster index to node mapping
+          l (list(int)): list containing the cluster indices of the root clusters
+
+        Returns:
+          new_cluster_node (Node): Root node of the XPGMA
+          n
         """
         for new_cluster_index in range(len(l), len(m)):  # compute all the cluster merges
             ci, cj, min_distance = self.find_smallest_distance_clusters(m, l)
@@ -114,6 +131,17 @@ class XPGMA(XpgmaBase):
 
 
     def generate_upgma(self, m, l, n):
+        """Computes a UPGMA
+
+        Args:
+          m (list(list(int))): cluster distance matrix (upper triangle matrix)
+          n (dict(int, Node)): cluster index to node mapping
+          l (list(int)): list containing the cluster indices of the root clusters
+
+        Returns:
+          new_cluster_node (Node): Root node of the XPGMA
+          n
+        """
         for new_cluster_index in range(len(l), len(m)):  # compute all the cluster merges
             ci, cj, min_distance = self.find_smallest_distance_clusters(m, l)
             #for i in range(len(l)):
@@ -151,8 +179,21 @@ class XPGMA(XpgmaBase):
             is_distance_fn,
             cost_gap_open,
             clustering):
-            scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, cost_gap_open)
+            """
+            Computes a XPGMA
 
+            Args:
+              seq_fasta_fn (str): The relative path to a fasta file
+              subst_matrix_fn (str): The relative path to a scoring matrix file
+              is_distance_fn (bool): If True, handle scoring matrix as distance measure, else similarity measure
+              cost_gap_open (int): gap cost open
+              clustering (str): either "upgma" or "wpgma"
+
+            Returns:
+                new_cluster_node (Node): Root node of the XPGMA
+                n
+            """
+            scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, cost_gap_open)
             seq_records = parse_fasta(seq_fasta_fn)
             seqs = [str(x.seq) for x in seq_records]
 
