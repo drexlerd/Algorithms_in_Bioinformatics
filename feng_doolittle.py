@@ -14,23 +14,21 @@ class FengDoolittle(FengDoolittleBase):
     def compute_msa(self, 
                     xpgma_root_node : Node,
                     nw : NeedlemanWunsch,
-                    scoring_matrix,
-                    cost_gap_open):
+                    scoring_matrix):
         """Computes the multiple sequence alignment.
         Guide tree is traversed depth first.
 
         Note: If the scoring_matrix is a similarity function, then apply distance transformation
 
         """
-        msa_with_neutral_elements = self._compute_msa_rec(xpgma_root_node, nw, scoring_matrix, cost_gap_open)
+        msa_with_neutral_elements = self._compute_msa_rec(xpgma_root_node, nw, scoring_matrix)
         return self.replace_neutral_symbol_with_gap_symbol(msa_with_neutral_elements)
         
     
     def _compute_msa_rec(self, 
                         node : Node,
                         nw : NeedlemanWunsch,
-                        scoring_matrix,
-                        cost_gap_open):
+                        scoring_matrix):
         """Recursively computes the multiple sequence alignment.
         Guide tree is traversed depth first.
 
@@ -59,13 +57,13 @@ class FengDoolittle(FengDoolittleBase):
         else:
             assert len(node.get_children()) == 2
             child1, child2 = node.get_children() 
-            alignment1 = self._compute_msa_rec(child1.succ, nw, scoring_matrix, cost_gap_open)
-            alignment2 = self._compute_msa_rec(child2.succ, nw, scoring_matrix, cost_gap_open)
+            alignment1 = self._compute_msa_rec(child1.succ, nw, scoring_matrix)
+            alignment2 = self._compute_msa_rec(child2.succ, nw, scoring_matrix)
             #print("Inductive case")
             #print(alignment1)
             #print(alignment2)
             # find pairwise alignment with minimal distance
-            min_pairwise_alignment, min_i, min_j = self.find_best_pairwise_alignment(nw, scoring_matrix, cost_gap_open, alignment1, alignment2)
+            min_pairwise_alignment, min_i, min_j = self.find_best_pairwise_alignment(nw, scoring_matrix, alignment1, alignment2)
             #print(min_pairwise_alignment)
             # align according to best pairwise alignment and return new alignment
             alignment3 = self.align_group_to_group_by_group(min_i, min_j, alignment1, alignment2, min_pairwise_alignment)
@@ -111,7 +109,7 @@ class FengDoolittle(FengDoolittleBase):
         return result
 
         
-    def find_best_pairwise_alignment(self, nw, scoring_matrix, cost_gap_open, group1, group2):
+    def find_best_pairwise_alignment(self, nw, scoring_matrix, group1, group2):
         """Compute the best pairwise alignment between sequences of group1, group2.
 
         Args:
@@ -130,11 +128,11 @@ class FengDoolittle(FengDoolittleBase):
         min_j = None
         for i in range(len(group1)):
             for j in range(len(group2)):
-                score, alignments = nw.compute_optimal_alignments(group1[i], group2[j], scoring_matrix, cost_gap_open, complete_traceback=False)
+                score, alignments = nw.compute_optimal_alignments(group1[i], group2[j], scoring_matrix, complete_traceback=False)
                 pairwise_alignment = alignments[0]
                 if scoring_matrix.metric_type == MetricType.SIMILARITY:
                     # transform to distance metric                    
-                    score = similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open)
+                    score = similarity_to_distance(nw, pairwise_alignment, scoring_matrix)
                 if score < min_score:
                     min_score = score
                     min_pairwise_alignment = pairwise_alignment
@@ -186,9 +184,9 @@ class FengDoolittle(FengDoolittleBase):
 
         nw = NeedlemanWunsch()
 
-        scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn)
+        scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, cost_gap_open)
 
-        return self.compute_msa(xpgma, nw, scoring_matrix, cost_gap_open)
+        return self.compute_msa(xpgma, nw, scoring_matrix)
 
 
 if __name__ == "__main__":
@@ -205,6 +203,6 @@ if __name__ == "__main__":
 
     result = fd.run(args.seq_fasta_fn,
             args.subst_matrix_fn,
-            args.is_distance_fn,
+            args.d,
             args.cost_gap_open,
             args.clustering)

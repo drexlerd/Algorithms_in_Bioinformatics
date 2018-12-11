@@ -2,7 +2,7 @@ from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix
 
 
 def test_scoring_matrix():
-    scoring_matrix = ScoringMatrix("data/blosum62.txt", False)
+    scoring_matrix = ScoringMatrix("data/blosum62.txt", False, 2)
     # scoring_matrix.print_scoring_matrix()
 
     # test anything

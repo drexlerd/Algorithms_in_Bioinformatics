@@ -39,7 +39,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
             d[0][j].AddPredecessor(d[0][j-1], Case.SEQ1_GAPPED)
 
 
-    def fill_matrix(self, d, seq1, seq2, scoring_matrix, function_operation, cost_gap_open):
+    def fill_matrix(self, d, seq1, seq2, scoring_matrix):
         """Fills out the dynamic programming matrix for the given seq1 and seq2
         with given scoring function and function_operation
 
@@ -49,6 +49,12 @@ class NeedlemanWunsch(NeedlemanWunschBase):
           scoring_matrix (ScoringMatrix): the scoring function object
           function_operation (f(list(tuples))) : function returning all tuples with min/max tuple.item1
         """
+        function_operation = None
+        if scoring_matrix.metric_type == MetricType.DISTANCE:
+            function_operation = Min
+        elif scoring_matrix.metric_type == MetricType.SIMILARITY:
+            function_operation = Max
+
         for i in range(1, len(seq1) + 1):
             for j in range(1, len(seq2) + 1):
                 # fill the matrix
@@ -62,8 +68,8 @@ class NeedlemanWunsch(NeedlemanWunschBase):
                 else:
                     score_aligning = scoring_matrix.score(x_i, y_j)
                     sequence = [(d[i-1][j-1].value + score_aligning, Case.ALIGNED), 
-                                (d[i][j-1].value + cost_gap_open, Case.SEQ1_GAPPED), 
-                                (d[i-1][j].value + cost_gap_open, Case.SEQ2_GAPPED)]
+                                (d[i][j-1].value + scoring_matrix.cost_gap_open, Case.SEQ1_GAPPED), 
+                                (d[i-1][j].value + scoring_matrix.cost_gap_open, Case.SEQ2_GAPPED)]
                 result_sequence = function_operation(sequence)
                 # store result of the recursion
                 d[i][j].SetValue(result_sequence[0][0])  # set value
@@ -110,25 +116,16 @@ class NeedlemanWunsch(NeedlemanWunschBase):
         return alignments
 
 
-    def compute_optimal_alignments(self, seq1, seq2, scoring_matrix, cost_gap_open, complete_traceback):
-        # scoring scheme (min / max)
-        function_operation = None
-
-        if scoring_matrix.metric_type == MetricType.DISTANCE:
-            function_operation = Min
-            cost_gap_open = abs(cost_gap_open)
-        elif scoring_matrix.metric_type == MetricType.SIMILARITY:
-            function_operation = Max
-            cost_gap_open = - abs(cost_gap_open)
+    def compute_optimal_alignments(self, seq1, seq2, scoring_matrix, complete_traceback):
 
         # dp matrix
         d = [[Cell(i, j) for j in range(len(seq2) + 1)] for i in range(len(seq1) + 1) ]
 
         # base cases
-        self.base_case_init(d, seq1, seq2, cost_gap_open)
+        self.base_case_init(d, seq1, seq2, scoring_matrix.cost_gap_open)
 
         # recursive case
-        self.fill_matrix(d, seq1, seq2, scoring_matrix, function_operation, cost_gap_open)
+        self.fill_matrix(d, seq1, seq2, scoring_matrix)
 
         #print("d")
         #for i in range(len(seq1) + 1):
@@ -158,7 +155,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
               List(List) : A 2D-array containing information about the pairwise optimal alignments
             """
             # scoring function
-            scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn)
+            scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, cost_gap_open)
 
             # sequences with their ids
             records_f1 = parse_fasta(seq1_fasta_fn)
@@ -179,7 +176,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
                     record2 = records_f2[j]
                     seq1 = str(record1.seq)
                     seq2 = str(record2.seq)
-                    score, alignments = self.compute_optimal_alignments(seq1, seq2, scoring_matrix, cost_gap_open, complete_traceback)
+                    score, alignments = self.compute_optimal_alignments(seq1, seq2, scoring_matrix, complete_traceback)
                     result[i][j] = (record1, record2, alignments, score) 
 
             return result, Info.OK

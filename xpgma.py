@@ -151,7 +151,7 @@ class XPGMA(XpgmaBase):
             is_distance_fn,
             cost_gap_open,
             clustering):
-            scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn)
+            scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, cost_gap_open)
 
             seq_records = parse_fasta(seq_fasta_fn)
             seqs = [str(x.seq) for x in seq_records]
@@ -185,7 +185,7 @@ class XPGMA(XpgmaBase):
                     if scoring_matrix.metric_type == MetricType.DISTANCE:
                         m[i][j] = result[i][j][3]
                     else:
-                        m[i][j] == similarity_to_distance(nw, result[i][j][2][0], scoring_matrix, cost_gap_open)
+                        m[i][j] == similarity_to_distance(nw, result[i][j][2][0], scoring_matrix)
 
             if clustering == "wpgma":
                 return self.generate_wpgma(m, l, n)

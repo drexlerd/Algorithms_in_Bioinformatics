@@ -15,7 +15,7 @@ class ScoringMatrix(object):
     It has a function score to compute the score for mutating from one symbol
     to another symbol.
     """
-    def __init__(self, filename, is_distance_fn):
+    def __init__(self, filename, is_distance_fn, cost_gap_open, cost_gap_extend=0):
         # the quadratic scoring matrix to retrieve scores from.
         self.scoring_matrix = []
         # mapping of symbol from the alphabet to an index, row or column in the matrix
@@ -28,14 +28,20 @@ class ScoringMatrix(object):
         # alphabet
         self.alphabet = []
 
-        # the type of the scoring metric (distance or similarity)
-        self.metric_type = MetricType.SIMILARITY
-
         self._parse_scoring_func(filename)
 
+        # the type of the scoring metric (distance or similarity)
+        self.metric_type = None
         self._set_metric_type(is_distance_fn)
 
         # self._add_neutral_symbol()  # added special case in nw for that
+
+        if self.metric_type == MetricType.DISTANCE:
+            self.cost_gap_open = abs(cost_gap_open)
+            self.cost_gap_extend = abs(cost_gap_extend)
+        elif self.metric_type == MetricType.SIMILARITY:
+            self.cost_gap_open = - abs(cost_gap_open)
+            self.cost_gap_extend = - abs(cost_gap_extend)
 
     
     def _add_neutral_symbol(self):

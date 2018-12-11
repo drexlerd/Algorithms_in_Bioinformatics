@@ -65,9 +65,7 @@ class Gotoh(GotohBase):
     def fill_matrix(self, d, p, q, 
       seq1, seq2, 
       scoring_matrix, 
-      function_operation, 
-      affine_cost_gap_open, 
-      affine_cost_gap_extend):
+      function_operation):
         """The inplace filling of the dynamic programming matrix d, p, q
 
         Args:
@@ -88,13 +86,13 @@ class Gotoh(GotohBase):
                 score_aligning = scoring_matrix.score(x_i, y_j)
 
                 # compute p
-                sequence_p = [(d[i-1][j].value + affine_cost_gap_open, Case.GAP_SEQ2_D), 
-                                (p[i-1][j].value + affine_cost_gap_extend, Case.GAP_SEQ2_P)]
+                sequence_p = [(d[i-1][j].value + scoring_matrix.cost_gap_open, Case.GAP_SEQ2_D), 
+                                (p[i-1][j].value + scoring_matrix.cost_gap_extend, Case.GAP_SEQ2_P)]
                 result_sequence_p = function_operation(sequence_p)
                 p[i][j].SetValue(result_sequence_p[0][0])  # set value
                 # compute q
-                sequence_q = [(d[i][j-1].value + affine_cost_gap_open, Case.GAP_SEQ1_D), 
-                                (q[i][j-1].value + affine_cost_gap_extend, Case.GAP_SEQ1_Q)]
+                sequence_q = [(d[i][j-1].value + scoring_matrix.cost_gap_open, Case.GAP_SEQ1_D), 
+                                (q[i][j-1].value + scoring_matrix.cost_gap_extend, Case.GAP_SEQ1_Q)]
                 result_sequence_q = function_operation(sequence_q)
                 q[i][j].SetValue(result_sequence_q[0][0])  # set value
                 # compute d
@@ -176,7 +174,7 @@ class Gotoh(GotohBase):
         """Computes optimal alignment(s) between two given sequences.
         """
         # scoring function
-        scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn)
+        scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, affine_cost_gap_open, affine_cost_gap_extend)
 
         # scoring scheme (min / max)
         function_operation = None
@@ -185,13 +183,9 @@ class Gotoh(GotohBase):
         if scoring_matrix.metric_type == MetricType.DISTANCE:
             function_operation = Min
             extreme_value = float("inf")
-            affine_cost_gap_open = abs(affine_cost_gap_open)
-            affine_cost_gap_extend = abs(affine_cost_gap_extend)
         elif scoring_matrix.metric_type == MetricType.SIMILARITY:
             function_operation = Max
             extreme_value = - float("inf")
-            affine_cost_gap_open = - abs(affine_cost_gap_open)
-            affine_cost_gap_extend = - abs(affine_cost_gap_extend)
         
         # ends with alignment
         d = [[Cell(i, j) for j in range(len(seq2) + 1)] for i in range(len(seq1) + 1) ]
@@ -201,10 +195,10 @@ class Gotoh(GotohBase):
         q = [[Cell(i, j) for j in range(len(seq2) + 1)] for i in range(len(seq1) + 1) ]
 
         # base cases
-        self.base_case_init(d, p, q, seq1, seq2, affine_cost_gap_open, affine_cost_gap_extend, extreme_value)
+        self.base_case_init(d, p, q, seq1, seq2, scoring_matrix.cost_gap_open, scoring_matrix.cost_gap_extend, extreme_value)
 
         # recursive case
-        self.fill_matrix(d, p, q, seq1, seq2, scoring_matrix, function_operation, affine_cost_gap_open, affine_cost_gap_extend)
+        self.fill_matrix(d, p, q, seq1, seq2, scoring_matrix, function_operation)
 
         #print("d")
         #for i in range(len(seq1) + 1):

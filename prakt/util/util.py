@@ -1,4 +1,5 @@
 import math
+from prakt.scoring_func_parser.scoring_func_parser import MetricType
 
 
 def Min(sequence):
@@ -69,7 +70,7 @@ def compute_traceback_dfs(current_cell, current_path=[]):
     return tracebacks
 
 
-def similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open):
+def similarity_to_distance(nw, pairwise_alignment, scoring_matrix):
     """Converts similarity score from a pairwise alignment to a distance score
     using approximation algorithm
     
@@ -81,21 +82,33 @@ def similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open
 
     S_{a,b}^{max} = (S(a,a) + S(b,b)) / 2
     """
+    if scoring_matrix.metric_type == MetricType.DISTANCE:
+        assert scoring_matrix.cost_gap_open >= 0
+    elif scoring_matrix.metric_type == MetricType.SIMILARITY:
+        assert scoring_matrix.cost_gap_open <= 0
+
     seq1 = pairwise_alignment[0].replace("_", "")
     seq2 = pairwise_alignment[1].replace("_", "")
 
-    S_ab, _ = nw.compute_optimal_alignments(seq1, seq2, scoring_matrix, cost_gap_open, complete_traceback=False)
+    S_ab, _ = nw.compute_optimal_alignments(seq1, seq2, scoring_matrix, complete_traceback=False)
 
-    S_aa, _ = nw.compute_optimal_alignments(seq1, seq1, scoring_matrix, cost_gap_open, complete_traceback=False)
+    S_aa, _ = nw.compute_optimal_alignments(seq1, seq1, scoring_matrix, complete_traceback=False)
 
-    S_bb, _ = nw.compute_optimal_alignments(seq2, seq2, scoring_matrix, cost_gap_open, complete_traceback=False)
+    S_bb, _ = nw.compute_optimal_alignments(seq2, seq2, scoring_matrix, complete_traceback=False)
 
     S_ab_max = (S_aa + S_bb) / 2
 
     S_rand = (1 / len(pairwise_alignment[0])) * \
-        sum([scoring_matrix.score(scoring_matrix.alphabet[i], scoring_matrix.alphabet[j]) * count_occurences_symbol_in_seq(seq1, scoring_matrix.alphabet[i]) * count_occurences_symbol_in_seq(seq2, scoring_matrix.alphabet[j]) for i in range(len(scoring_matrix.alphabet)) for j in range(len(scoring_matrix.alphabet))]) + count_gaps_in_pairwise_alignment(pairwise_alignment) * cost_gap_open
+        sum([scoring_matrix.score(scoring_matrix.alphabet[i], scoring_matrix.alphabet[j]) * count_occurences_symbol_in_seq(seq1, scoring_matrix.alphabet[i]) * count_occurences_symbol_in_seq(seq2, scoring_matrix.alphabet[j]) for i in range(len(scoring_matrix.alphabet)) for j in range(len(scoring_matrix.alphabet))]) + count_gaps_in_pairwise_alignment(pairwise_alignment) * scoring_matrix.cost_gap_open
 
     S_eff = (S_ab - S_rand) / (S_ab_max - S_rand)
+
+    print("asdasd")
+    print(pairwise_alignment)
+    print("S_ab %5.2f" % S_ab)
+    print("S_ab_max %5.2f" % S_ab_max)
+    print("S_rand %5.2f" % S_rand)
+    print("S_eff %5.2f" %S_eff)
 
     return - math.log(S_eff)
 

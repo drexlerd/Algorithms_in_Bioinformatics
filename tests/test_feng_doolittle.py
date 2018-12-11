@@ -17,12 +17,11 @@ def test_count_occurences_symbol_in_seq():
 
 
 def test_similarity_to_distance():
-    scoring_matrix = ScoringMatrix("data/test_scoring_similarity.txt", is_distance_fn=False)
+    scoring_matrix = ScoringMatrix("data/test_scoring_similarity.txt", is_distance_fn=False, cost_gap_open=1)
     nw = NeedlemanWunsch()
     fd = FengDoolittle()
     pairwise_alignment = ("__TCCGA_", "TACGCAGA")
-    cost_gap_open = -1  # in the similarity mesasure this gets converted from 1 to -1
-    distance = similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open)
+    distance = similarity_to_distance(nw, pairwise_alignment, scoring_matrix)
 
     count = count_gaps_in_pairwise_alignment(pairwise_alignment)
     assert count == 3
@@ -51,3 +50,11 @@ def test_feng_doolittle():
     assert msa == ['ACTACACCCTTATGAG', 'ACTTGTCCGAAACGAT', 'AGATGACCGTTTCGAT', 'ACT____TGACCGTTT', 'GCT____TGTTACGAT', 'TC_____TGTTACGAT']
 
     
+def test_feng_doolittle_similarity():
+    fd = FengDoolittle()
+
+    msa = fd.run("data/xpgma.fasta",
+            "data/test_scoring_similarity.txt",
+            False,
+            0,
+            "wpgma")
