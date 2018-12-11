@@ -3,6 +3,7 @@ from prakt.fasta_parser.fasta_parser import parse_fasta, check_sequences_alphabe
 from prakt.basis_classes.cell import Cell
 from enum import Enum
 from prakt.util.util import Max, compute_traceback
+import argparse
 
 class Case(Enum):
     UNPAIRED = 0,
@@ -155,10 +156,59 @@ class Nussinov(NussinovBase):
     def run(self,
         seq_fasta_fn,
         complete_traceback):
+        """Given a fasta file computes optimal structures using the nussinov algorithm
+        If complete traceback then all optimal structures are returned, else 1
 
+        Args:
+          seq_fast_fn (str): A fasta file
+          complete_traceback (bool): All optimal structures, if True, else 1
+        """
         # sequences with their ids
-        records = parse_fasta(seq_fasta_fn)
+        records = parse_fasta(args.seq_fasta_fn)
+        complete_traceback = args.c
 
+        results = []
+  
         for r in records:
-            pass
+            sequence = str(r.seq)
 
+            abstract_structures, amount_pairs = self.compute_optimal_abstract_structure(sequence, complete_traceback)
+
+            structures = self.convert_abstract_structure_to_structure(sequence, amount_pairs, abstract_structures)
+
+            results.append(structures)
+
+        return results
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Nussinov command line tool")
+    parser.add_argument("seq_fasta_fn", type=str)
+    parser.add_argument("--c", "--complete_traceback", action='store_true')
+    args = parser.parse_args()
+
+    nussinov = Nussinov()
+
+    # sequences with their ids
+    records = parse_fasta(args.seq_fasta_fn)
+    complete_traceback = args.c
+
+    results = nussinov.run(args.seq_fasta_fn, complete_traceback)
+
+
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("Nussinov Results")
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    for i in range(len(results)):
+        sequence = str(records[i].seq)
+        seqID = records[i].seq
+
+        structures = results[i]
+
+        print("Optimal structures for sequence %s" % (seqID))
+        print("Total optimal structures: %d" % (len(structures)))
+        print(sequence)
+        for structure in structures:
+            print(structure)
+        print()
