@@ -1,3 +1,8 @@
+"""
+Module name: Feng Doolittle
+Module author: dominik drexler <drexlerd@informatik.uni-freiburg.de>
+"""
+
 from prakt.fd import FengDoolittleBase
 from xpgma import XPGMA, Node
 from needleman_wunsch import NeedlemanWunsch
@@ -20,6 +25,10 @@ class FengDoolittle(FengDoolittleBase):
 
         Note: If the scoring_matrix is a similarity function, then apply distance transformation
 
+        Args:
+          xpgma_root_node (Node): The XPGMA root node
+          nw (NeedlemanWunsch): Algorithm to compute pairwise alignments with their respective scores
+          scoring_matrix (ScoringMatrix): scoring matrix
         """
         msa_with_neutral_elements = self._compute_msa_rec(xpgma_root_node, nw, scoring_matrix)
         return self.replace_neutral_symbol_with_gap_symbol(msa_with_neutral_elements)
@@ -44,7 +53,6 @@ class FengDoolittle(FengDoolittleBase):
           node (Node): The current in traversal
           nw (NeedlemanWunsch): Pairwise alignment algorithm
           scoring_matrix (ScoringMatrix): The scoring matrix object
-          cost_gap_open (float): Cost of for a gap 
 
         Returns:
           list(str): A multiple sequence alignment
@@ -114,6 +122,7 @@ class FengDoolittle(FengDoolittleBase):
 
         Args:
           nw (NeedlemanWunsch): Algorithm for computing pairwise alignments
+          scoring_matrix (ScoringMatrix): scoring matrix
           group1 (list(str)): An alignment
           group2 (list(str)): An alignment
 
@@ -154,6 +163,15 @@ class FengDoolittle(FengDoolittleBase):
 
 
     def replace_neutral_symbol_with_gap_symbol(self, group):
+        """Replaces all occurences of the gap symbol "_" in the alignment group
+        by the neutral symbol "X"
+
+        Args:
+          group (list(list(str))): The alignment group
+
+        Returns:
+          group (list(list(str))): The alignment group with replacements
+        """
         return [string.replace("X", "_") for string in group]
 
 
@@ -169,6 +187,7 @@ class FengDoolittle(FengDoolittleBase):
         Args:
             seq_fasta_fn: path to fasta file containing sequences
             subst_matrix_fn: path to substitution matrix
+            is_distance_fn (bool): If True, handle scoring matrix as distance measure, else similarity measure
             cost_gap_open: cost to open a gap
             clustering: select clustering algorithm, either "UPGMA" or "WPGMA"
 

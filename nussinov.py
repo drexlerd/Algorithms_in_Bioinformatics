@@ -1,3 +1,8 @@
+"""
+Module name: Nussinov
+Module author: dominik drexler <drexlerd@informatik.uni-freiburg.de>
+"""
+
 from prakt.nussinov import NussinovBase
 from prakt.fasta_parser.fasta_parser import parse_fasta, check_sequences_alphabet, SequenceType
 from prakt.basis_classes.cell import Cell
