@@ -2,6 +2,7 @@
 author: dominik drexler <drexlerd@informatik.uni-freiburg.de>
 """
 from enum import Enum
+from prakt.util.util import Min, Max
 
 
 class MetricType(Enum):
@@ -39,9 +40,13 @@ class ScoringMatrix(object):
         if self.metric_type == MetricType.DISTANCE:
             self.cost_gap_open = abs(cost_gap_open)
             self.cost_gap_extend = abs(cost_gap_extend)
+            self.extreme_value = float("inf")
+            self.function_operation = Min
         elif self.metric_type == MetricType.SIMILARITY:
             self.cost_gap_open = - abs(cost_gap_open)
             self.cost_gap_extend = - abs(cost_gap_extend)
+            self.extreme_value = - float("inf")
+            self.function_operation = Max
 
     
     def _add_neutral_symbol(self):

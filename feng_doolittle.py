@@ -190,7 +190,7 @@ class FengDoolittle(FengDoolittleBase):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Needleman Wunsch command line tool")
+    parser = argparse.ArgumentParser(description="Feng Doolittle command line tool")
     parser.add_argument("seq_fasta_fn", type=str)
     parser.add_argument("subst_matrix_fn", type=str)
     parser.add_argument("cost_gap_open", type=int)
@@ -206,3 +206,12 @@ if __name__ == "__main__":
             args.d,
             args.cost_gap_open,
             args.clustering)
+
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("Feng Doolittle - Results")
+    print("Scoring function: %s" % (args.subst_matrix_fn))
+    print("Scoring type: %s" % ("Distance" if args.d else "Similarity"))
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("Resulting MSA:")
+    for s in result:
+        print(s)

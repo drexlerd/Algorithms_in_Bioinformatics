@@ -1,5 +1,4 @@
 import math
-from prakt.scoring_func_parser.scoring_func_parser import MetricType
 
 
 def Min(sequence):
@@ -82,11 +81,6 @@ def similarity_to_distance(nw, pairwise_alignment, scoring_matrix):
 
     S_{a,b}^{max} = (S(a,a) + S(b,b)) / 2
     """
-    if scoring_matrix.metric_type == MetricType.DISTANCE:
-        assert scoring_matrix.cost_gap_open >= 0
-    elif scoring_matrix.metric_type == MetricType.SIMILARITY:
-        assert scoring_matrix.cost_gap_open <= 0
-
     seq1 = pairwise_alignment[0].replace("_", "")
     seq2 = pairwise_alignment[1].replace("_", "")
 
@@ -103,12 +97,11 @@ def similarity_to_distance(nw, pairwise_alignment, scoring_matrix):
 
     S_eff = (S_ab - S_rand) / (S_ab_max - S_rand)
 
-    print("asdasd")
-    print(pairwise_alignment)
-    print("S_ab %5.2f" % S_ab)
-    print("S_ab_max %5.2f" % S_ab_max)
-    print("S_rand %5.2f" % S_rand)
-    print("S_eff %5.2f" %S_eff)
+    #print(pairwise_alignment)
+    #print("S_ab %5.2f" % S_ab)
+    #print("S_ab_max %5.2f" % S_ab_max)
+    #print("S_rand %5.2f" % S_rand)
+    #print("S_eff %5.2f" %S_eff)
 
     return - math.log(S_eff)
 

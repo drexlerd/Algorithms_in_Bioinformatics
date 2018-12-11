@@ -2,7 +2,7 @@ from prakt.nw import NeedlemanWunschBase
 from prakt.fasta_parser.fasta_parser import parse_fasta, check_sequences_alphabet, SequenceType
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix, MetricType
 from prakt.basis_classes.cell import Cell
-from prakt.util.util import Min, Max, compute_traceback
+from prakt.util.util import compute_traceback
 from enum import Enum
 import argparse
 
@@ -22,7 +22,7 @@ class Info(Enum):
 class NeedlemanWunsch(NeedlemanWunschBase):
     """Document me!"""
 
-    def base_case_init(self, d, seq1, seq2, cost_gap_open):
+    def base_case_init(self, d, seq1, seq2, scoring_matrix):
         """The initialization of the dynamic programming matrix d
 
         Args:
@@ -32,10 +32,10 @@ class NeedlemanWunsch(NeedlemanWunschBase):
 
         # base case 
         for i in range(1, len(seq1) + 1):
-            d[i][0].SetValue(i * cost_gap_open)
+            d[i][0].SetValue(i * scoring_matrix.cost_gap_open)
             d[i][0].AddPredecessor(d[i-1][0], Case.SEQ2_GAPPED)
         for j in range(1, len(seq2) + 1):
-            d[0][j].SetValue(j * cost_gap_open)
+            d[0][j].SetValue(j * scoring_matrix.cost_gap_open)
             d[0][j].AddPredecessor(d[0][j-1], Case.SEQ1_GAPPED)
 
 
@@ -49,12 +49,6 @@ class NeedlemanWunsch(NeedlemanWunschBase):
           scoring_matrix (ScoringMatrix): the scoring function object
           function_operation (f(list(tuples))) : function returning all tuples with min/max tuple.item1
         """
-        function_operation = None
-        if scoring_matrix.metric_type == MetricType.DISTANCE:
-            function_operation = Min
-        elif scoring_matrix.metric_type == MetricType.SIMILARITY:
-            function_operation = Max
-
         for i in range(1, len(seq1) + 1):
             for j in range(1, len(seq2) + 1):
                 # fill the matrix
@@ -70,7 +64,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
                     sequence = [(d[i-1][j-1].value + score_aligning, Case.ALIGNED), 
                                 (d[i][j-1].value + scoring_matrix.cost_gap_open, Case.SEQ1_GAPPED), 
                                 (d[i-1][j].value + scoring_matrix.cost_gap_open, Case.SEQ2_GAPPED)]
-                result_sequence = function_operation(sequence)
+                result_sequence = scoring_matrix.function_operation(sequence)
                 # store result of the recursion
                 d[i][j].SetValue(result_sequence[0][0])  # set value
                 # set predecessors
@@ -122,7 +116,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
         d = [[Cell(i, j) for j in range(len(seq2) + 1)] for i in range(len(seq1) + 1) ]
 
         # base cases
-        self.base_case_init(d, seq1, seq2, scoring_matrix.cost_gap_open)
+        self.base_case_init(d, seq1, seq2, scoring_matrix)
 
         # recursive case
         self.fill_matrix(d, seq1, seq2, scoring_matrix)

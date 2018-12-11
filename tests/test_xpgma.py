@@ -1,5 +1,6 @@
 from xpgma import XPGMA, Node
 
+
 def test_generate_wpgma():
     m = [[0, 3, 12, 12, 9, 0, 0, 0, 0],
          [0, 0, 13, 13, 10, 0, 0, 0, 0],

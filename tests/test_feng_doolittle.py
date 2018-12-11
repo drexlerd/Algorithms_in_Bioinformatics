@@ -56,5 +56,5 @@ def test_feng_doolittle_similarity():
     msa = fd.run("data/xpgma.fasta",
             "data/test_scoring_similarity.txt",
             False,
-            0,
+            1,
             "wpgma")

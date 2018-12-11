@@ -2,7 +2,7 @@ from prakt.gt import GotohBase
 from prakt.fasta_parser.fasta_parser import parse_fasta, check_sequences_alphabet, SequenceType
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix, MetricType
 from prakt.basis_classes.cell import Cell
-from prakt.util.util import Min, Max, compute_traceback
+from prakt.util.util import compute_traceback
 from enum import Enum
 import argparse
 
@@ -29,9 +29,7 @@ class Gotoh(GotohBase):
 
     def base_case_init(self, d, p, q, 
       seq1, seq2, 
-      affine_cost_gap_open, 
-      affine_cost_gap_extend, 
-      extreme_value):        
+      scoring_matrix):        
         """The inplace initialization of the dynamic programming matrix d, p, q
 
         Args:
@@ -48,24 +46,23 @@ class Gotoh(GotohBase):
         # base case 
         for i in range(1, len(seq1) + 1):
             if i == 1:
-                d[i][0].SetValue(affine_cost_gap_open)
+                d[i][0].SetValue(scoring_matrix.cost_gap_open)
             else:
-                d[i][0].SetValue(affine_cost_gap_open + (i-1) * affine_cost_gap_extend)
+                d[i][0].SetValue(scoring_matrix.cost_gap_open + (i-1) * scoring_matrix.cost_gap_extend)
             d[i][0].AddPredecessor(d[i-1][0], Case.GAP_SEQ2_D)
-            q[i][0].SetValue(extreme_value)
+            q[i][0].SetValue(scoring_matrix.extreme_value)
         for j in range(1, len(seq2) + 1):
             if j == 1:
-                d[0][j].SetValue(affine_cost_gap_open)
+                d[0][j].SetValue(scoring_matrix.cost_gap_open)
             else:
-                d[0][j].SetValue(affine_cost_gap_open + (j-1) * affine_cost_gap_extend)
+                d[0][j].SetValue(scoring_matrix.cost_gap_open + (j-1) * scoring_matrix.cost_gap_extend)
             d[0][j].AddPredecessor(d[0][j-1], Case.GAP_SEQ1_D)
-            p[0][j].SetValue(extreme_value)
+            p[0][j].SetValue(scoring_matrix.extreme_value)
 
 
     def fill_matrix(self, d, p, q, 
       seq1, seq2, 
-      scoring_matrix, 
-      function_operation):
+      scoring_matrix):
         """The inplace filling of the dynamic programming matrix d, p, q
 
         Args:
@@ -88,18 +85,18 @@ class Gotoh(GotohBase):
                 # compute p
                 sequence_p = [(d[i-1][j].value + scoring_matrix.cost_gap_open, Case.GAP_SEQ2_D), 
                                 (p[i-1][j].value + scoring_matrix.cost_gap_extend, Case.GAP_SEQ2_P)]
-                result_sequence_p = function_operation(sequence_p)
+                result_sequence_p = scoring_matrix.function_operation(sequence_p)
                 p[i][j].SetValue(result_sequence_p[0][0])  # set value
                 # compute q
                 sequence_q = [(d[i][j-1].value + scoring_matrix.cost_gap_open, Case.GAP_SEQ1_D), 
                                 (q[i][j-1].value + scoring_matrix.cost_gap_extend, Case.GAP_SEQ1_Q)]
-                result_sequence_q = function_operation(sequence_q)
+                result_sequence_q = scoring_matrix.function_operation(sequence_q)
                 q[i][j].SetValue(result_sequence_q[0][0])  # set value
                 # compute d
                 sequence_d = [(d[i-1][j-1].value + score_aligning, Case.ALIGN_D), 
                                 (p[i][j].value, Case.JUMP_P), 
                                 (q[i][j].value, Case.JUMP_Q)]
-                result_sequence_d = function_operation(sequence_d)
+                result_sequence_d = scoring_matrix.function_operation(sequence_d)
                 d[i][j].SetValue(result_sequence_d[0][0])  # set value
 
                 # set predecessors
@@ -175,17 +172,6 @@ class Gotoh(GotohBase):
         """
         # scoring function
         scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, affine_cost_gap_open, affine_cost_gap_extend)
-
-        # scoring scheme (min / max)
-        function_operation = None
-        extreme_value = None  # used in initialization of p and q
-
-        if scoring_matrix.metric_type == MetricType.DISTANCE:
-            function_operation = Min
-            extreme_value = float("inf")
-        elif scoring_matrix.metric_type == MetricType.SIMILARITY:
-            function_operation = Max
-            extreme_value = - float("inf")
         
         # ends with alignment
         d = [[Cell(i, j) for j in range(len(seq2) + 1)] for i in range(len(seq1) + 1) ]
@@ -195,10 +181,10 @@ class Gotoh(GotohBase):
         q = [[Cell(i, j) for j in range(len(seq2) + 1)] for i in range(len(seq1) + 1) ]
 
         # base cases
-        self.base_case_init(d, p, q, seq1, seq2, scoring_matrix.cost_gap_open, scoring_matrix.cost_gap_extend, extreme_value)
+        self.base_case_init(d, p, q, seq1, seq2, scoring_matrix)
 
         # recursive case
-        self.fill_matrix(d, p, q, seq1, seq2, scoring_matrix, function_operation)
+        self.fill_matrix(d, p, q, seq1, seq2, scoring_matrix)
 
         #print("d")
         #for i in range(len(seq1) + 1):
