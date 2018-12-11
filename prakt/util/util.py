@@ -1,3 +1,4 @@
+import math
 
 
 def Min(sequence):
@@ -66,3 +67,65 @@ def compute_traceback_dfs(current_cell, current_path=[]):
         # Note: current_path + [pre] instead of append because he have to copy the path
         tracebacks.extend(compute_traceback_dfs(pre[0], current_path + [pre]))
     return tracebacks
+
+
+def similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open):
+    """Converts similarity score from a pairwise alignment to a distance score
+    using approximation algorithm
+    
+    D(a,b) = - log(S_{a,b}^{eff})
+
+    S_{a,b}^{eff} = (S(a,b) - S_{rand}) / (S_{a,b}^{max} - S_{rand})
+
+    S_{rand} = (1/|A|) * (sum_{x,y in Sigma x Sigma} S(x,y) * N_a(x) * N_b(y)) + gaps(A) * S(-,*)
+
+    S_{a,b}^{max} = (S(a,a) + S(b,b)) / 2
+    """
+    seq1 = pairwise_alignment[0].replace("_", "")
+    seq2 = pairwise_alignment[1].replace("_", "")
+
+    S_ab, _ = nw.compute_optimal_alignments(seq1, seq2, scoring_matrix, cost_gap_open, complete_traceback=False)
+
+    S_aa, _ = nw.compute_optimal_alignments(seq1, seq1, scoring_matrix, cost_gap_open, complete_traceback=False)
+
+    S_bb, _ = nw.compute_optimal_alignments(seq2, seq2, scoring_matrix, cost_gap_open, complete_traceback=False)
+
+    S_ab_max = (S_aa + S_bb) / 2
+
+    S_rand = (1 / len(pairwise_alignment[0])) * \
+        sum([scoring_matrix.score(scoring_matrix.alphabet[i], scoring_matrix.alphabet[j]) * count_occurences_symbol_in_seq(seq1, scoring_matrix.alphabet[i]) * count_occurences_symbol_in_seq(seq2, scoring_matrix.alphabet[j]) for i in range(len(scoring_matrix.alphabet)) for j in range(len(scoring_matrix.alphabet))]) + count_gaps_in_pairwise_alignment(pairwise_alignment) * cost_gap_open
+
+    S_eff = (S_ab - S_rand) / (S_ab_max - S_rand)
+
+    return - math.log(S_eff)
+
+
+def count_occurences_symbol_in_seq(seq, symbol):
+    """Counts the number of occurences of symbol in seq
+
+    Args:
+        seq (str): A sequence
+        symbol (char): A character
+    """
+    count = 0
+    for x in seq:
+        if x == symbol:
+            count += 1
+    return count
+
+
+def count_gaps_in_pairwise_alignment(pairwise_alignment):
+    """Counts the number of gaps in the given pairwise alignment. Since Feng-Dootlittle
+    exchanges gaps with special character "X" we also need to take care about this special
+    character
+
+    Args:
+        pairwise_alignment (list(str)): A 2 element list containing a gapped sequences.
+                                        Therefore the lengths are equal
+                                        
+    """
+    count = 0
+    for i in range(len(pairwise_alignment[0])):
+        if pairwise_alignment[0][i] in ["_", "X"] or pairwise_alignment[1][i] in ["_", "X"]:
+            count += 1
+    return count

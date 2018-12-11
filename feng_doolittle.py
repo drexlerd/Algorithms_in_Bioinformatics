@@ -2,7 +2,9 @@ from prakt.fd import FengDoolittleBase
 from xpgma import XPGMA, Node
 from needleman_wunsch import NeedlemanWunsch
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix, MetricType
+from prakt.util.util import similarity_to_distance
 import math
+import argparse
 
 
 
@@ -14,9 +16,62 @@ class FengDoolittle(FengDoolittleBase):
                     nw : NeedlemanWunsch,
                     scoring_matrix,
                     cost_gap_open):
-        msa_with_neutral_elements = self.compute_msa_rec(xpgma_root_node, nw, scoring_matrix, cost_gap_open)
+        """Computes the multiple sequence alignment.
+        Guide tree is traversed depth first.
+
+        Note: If the scoring_matrix is a similarity function, then apply distance transformation
+
+        """
+        msa_with_neutral_elements = self._compute_msa_rec(xpgma_root_node, nw, scoring_matrix, cost_gap_open)
         return self.replace_neutral_symbol_with_gap_symbol(msa_with_neutral_elements)
         
+    
+    def _compute_msa_rec(self, 
+                        node : Node,
+                        nw : NeedlemanWunsch,
+                        scoring_matrix,
+                        cost_gap_open):
+        """Recursively computes the multiple sequence alignment.
+        Guide tree is traversed depth first.
+
+        Note: If the scoring_matrix is a similarity function, then apply distance transformation
+
+        Base case:
+          Leaf node: return alignment consisting of one sequence
+        Inductive case:
+          Inner node: return alignment between the group of the left child and the group of the right child
+                      through the best pairwise alignment
+
+        Args:
+          node (Node): The current in traversal
+          nw (NeedlemanWunsch): Pairwise alignment algorithm
+          scoring_matrix (ScoringMatrix): The scoring matrix object
+          cost_gap_open (float): Cost of for a gap 
+
+        Returns:
+          list(str): A multiple sequence alignment
+        """
+        if node.is_leaf():
+            group = [str(node.get_seq_record().seq)]
+            #print("Base case")
+            #print(group)
+            return group  # return the sequence as alignment of 1 sequence
+        else:
+            assert len(node.get_children()) == 2
+            child1, child2 = node.get_children() 
+            alignment1 = self._compute_msa_rec(child1.succ, nw, scoring_matrix, cost_gap_open)
+            alignment2 = self._compute_msa_rec(child2.succ, nw, scoring_matrix, cost_gap_open)
+            #print("Inductive case")
+            #print(alignment1)
+            #print(alignment2)
+            # find pairwise alignment with minimal distance
+            min_pairwise_alignment, min_i, min_j = self.find_best_pairwise_alignment(nw, scoring_matrix, cost_gap_open, alignment1, alignment2)
+            #print(min_pairwise_alignment)
+            # align according to best pairwise alignment and return new alignment
+            alignment3 = self.align_group_to_group_by_group(min_i, min_j, alignment1, alignment2, min_pairwise_alignment)
+            group3 = self.replace_gap_symbol_with_neutral_symbol(alignment3)
+            #print(alignment3)
+            return group3
 
 
     def align_group_to_group_by_group(self, min_i, min_j, group1, group2, group3):
@@ -79,7 +134,7 @@ class FengDoolittle(FengDoolittleBase):
                 pairwise_alignment = alignments[0]
                 if scoring_matrix.metric_type == MetricType.SIMILARITY:
                     # transform to distance metric                    
-                    score = self.similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open)
+                    score = similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open)
                 if score < min_score:
                     min_score = score
                     min_pairwise_alignment = pairwise_alignment
@@ -102,116 +157,6 @@ class FengDoolittle(FengDoolittleBase):
 
     def replace_neutral_symbol_with_gap_symbol(self, group):
         return [string.replace("X", "_") for string in group]
-
-
-    def compute_msa_rec(self, 
-                        node : Node,
-                        nw : NeedlemanWunsch,
-                        scoring_matrix,
-                        cost_gap_open):
-        """Recursively computes the multiple sequence alignment.
-        Guide tree is traversed depth first.
-
-        Note: If the scoring_matrix is a similarity function, then apply distance transformation
-
-        Base case:
-          Leaf node: return alignment consisting of one sequence
-        Inductive case:
-          Inner node: return alignment between the group of the left child and the group of the right child
-                      through the best pairwise alignment
-
-        Args:
-          node (Node): The current in traversal
-          nw (NeedlemanWunsch): Pairwise alignment algorithm
-          scoring_matrix (ScoringMatrix): The scoring matrix object
-          cost_gap_open (float): Cost of for a gap 
-
-        Returns:
-          list(str): A multiple sequence alignment
-        """
-        if node.is_leaf():
-            group = [str(node.get_seq_record().seq)]
-            #print("Base case")
-            #print(group)
-            return group  # return the sequence as alignment of 1 sequence
-        else:
-            assert len(node.get_children()) == 2
-            child1, child2 = node.get_children() 
-            alignment1 = self.compute_msa_rec(child1.succ, nw, scoring_matrix, cost_gap_open)
-            alignment2 = self.compute_msa_rec(child2.succ, nw, scoring_matrix, cost_gap_open)
-            #print("Inductive case")
-            #print(alignment1)
-            #print(alignment2)
-            # find pairwise alignment with minimal distance
-            min_pairwise_alignment, min_i, min_j = self.find_best_pairwise_alignment(nw, scoring_matrix, cost_gap_open, alignment1, alignment2)
-            #print(min_pairwise_alignment)
-            # align according to best pairwise alignment and return new alignment
-            alignment3 = self.align_group_to_group_by_group(min_i, min_j, alignment1, alignment2, min_pairwise_alignment)
-            group3 = self.replace_gap_symbol_with_neutral_symbol(alignment3)
-            #print(alignment3)
-            return group3
-
-
-    def similarity_to_distance(self, nw, pairwise_alignment, scoring_matrix, cost_gap_open):
-        """Converts similarity score from a pairwise alignment to a distance score
-        using approximation algorithm
-        
-        D(a,b) = - log(S_{a,b}^{eff})
-
-        S_{a,b}^{eff} = (S(a,b) - S_{rand}) / (S_{a,b}^{max} - S_{rand})
-
-        S_{rand} = (1/|A|) * (sum_{x,y in Sigma x Sigma} S(x,y) * N_a(x) * N_b(y)) + gaps(A) * S(-,*)
-
-        S_{a,b}^{max} = (S(a,a) + S(b,b)) / 2
-        """
-        seq1 = pairwise_alignment[0].replace("_", "")
-        seq2 = pairwise_alignment[1].replace("_", "")
-
-        S_ab, _ = nw.compute_optimal_alignments(seq1, seq2, scoring_matrix, cost_gap_open, complete_traceback=False)
-
-        S_aa, _ = nw.compute_optimal_alignments(seq1, seq1, scoring_matrix, cost_gap_open, complete_traceback=False)
-
-        S_bb, _ = nw.compute_optimal_alignments(seq2, seq2, scoring_matrix, cost_gap_open, complete_traceback=False)
-
-        S_ab_max = (S_aa + S_bb) / 2
-
-        S_rand = (1 / len(pairwise_alignment[0])) * \
-          sum([scoring_matrix.score(scoring_matrix.alphabet[i], scoring_matrix.alphabet[j]) * self.count_occurences_symbol_in_seq(seq1, scoring_matrix.alphabet[i]) * self.count_occurences_symbol_in_seq(seq2, scoring_matrix.alphabet[j]) for i in range(len(scoring_matrix.alphabet)) for j in range(len(scoring_matrix.alphabet))]) + self.count_gaps_in_pairwise_alignment(pairwise_alignment) * cost_gap_open
-
-        S_eff = (S_ab - S_rand) / (S_ab_max - S_rand)
-
-        return - math.log(S_eff)
-
-
-    def count_occurences_symbol_in_seq(self, seq, symbol):
-        """Counts the number of occurences of symbol in seq
-
-        Args:
-          seq (str): A sequence
-          symbol (char): A character
-        """
-        count = 0
-        for x in seq:
-            if x == symbol:
-                count += 1
-        return count
-
-    
-    def count_gaps_in_pairwise_alignment(self, pairwise_alignment):
-        """Counts the number of gaps in the given pairwise alignment. Since Feng-Dootlittle
-        exchanges gaps with special character "X" we also need to take care about this special
-        character
-
-        Args:
-          pairwise_alignment (list(str)): A 2 element list containing a gapped sequences.
-                                          Therefore the lengths are equal
-                                          
-        """
-        count = 0
-        for i in range(len(pairwise_alignment[0])):
-            if pairwise_alignment[0][i] in ["_", "X"] or pairwise_alignment[1][i] in ["_", "X"]:
-                count += 1
-        return count
 
 
     def run(self,
@@ -237,10 +182,29 @@ class FengDoolittle(FengDoolittleBase):
         """
 
         xpgma = XPGMA()
-        xpgma, _ = xpgma.run(seq_fasta_fn, subst_matrix_fn, cost_gap_open, clustering)
+        xpgma, _ = xpgma.run(seq_fasta_fn, subst_matrix_fn, is_distance_fn, cost_gap_open, clustering)
 
         nw = NeedlemanWunsch()
 
         scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn)
 
         return self.compute_msa(xpgma, nw, scoring_matrix, cost_gap_open)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Needleman Wunsch command line tool")
+    parser.add_argument("seq_fasta_fn", type=str)
+    parser.add_argument("subst_matrix_fn", type=str)
+    parser.add_argument("cost_gap_open", type=int)
+    parser.add_argument('clustering', choices=['wpgma', 'upgma'])
+    parser.add_argument("--d", "--is_distance_fn", action='store_true')
+    parser.add_argument("--c", "--complete_traceback", action='store_true')
+    args = parser.parse_args()
+
+    fd = FengDoolittle()
+
+    result = fd.run(args.seq_fasta_fn,
+            args.subst_matrix_fn,
+            args.is_distance_fn,
+            args.cost_gap_open,
+            args.clustering)

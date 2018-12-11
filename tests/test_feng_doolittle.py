@@ -2,6 +2,7 @@ from prakt.fd import FengDoolittleBase
 from feng_doolittle import FengDoolittle
 from needleman_wunsch import NeedlemanWunsch
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix
+from prakt.util.util import similarity_to_distance, count_occurences_symbol_in_seq, count_gaps_in_pairwise_alignment
 import math
 
 
@@ -9,9 +10,9 @@ def test_count_occurences_symbol_in_seq():
     seq1 = ("__TCCGA_", "TACGCAGA")[0]
     seq2 = ("__TCCGA_", "TACGCAGA")[1]
     fd = FengDoolittle()
-    count = fd.count_occurences_symbol_in_seq(seq1, "C")
+    count = count_occurences_symbol_in_seq(seq1, "C")
     assert count == 2
-    count = fd.count_occurences_symbol_in_seq(seq1, "G")
+    count = count_occurences_symbol_in_seq(seq1, "G")
     assert count == 1
 
 
@@ -21,9 +22,9 @@ def test_similarity_to_distance():
     fd = FengDoolittle()
     pairwise_alignment = ("__TCCGA_", "TACGCAGA")
     cost_gap_open = -1  # in the similarity mesasure this gets converted from 1 to -1
-    distance = fd.similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open)
+    distance = similarity_to_distance(nw, pairwise_alignment, scoring_matrix, cost_gap_open)
 
-    count = fd.count_gaps_in_pairwise_alignment(pairwise_alignment)
+    count = count_gaps_in_pairwise_alignment(pairwise_alignment)
     assert count == 3
 
     # the right hand side was computed from hand and is - log(S_eff)
@@ -32,10 +33,21 @@ def test_similarity_to_distance():
 def test_feng_doolittle():
     fd = FengDoolittle()
 
+    # test with low gap cost
     msa = fd.run("data/xpgma.fasta",
             "data/test_scoring_distance.txt",
             True,
             1,
             "wpgma")
+    assert msa == ['GCT____TGTTACGAT', 'TC_____TGTTACGAT', 'ACTTGACCG_TT___T', 'ACTACACCCTTATGAG', 'ACTTGTCCGAAACGAT', 'AGATGACCGTTTCGAT']
+    
+    # test with high gap cost => likelier to align gap with gap
+    msa = fd.run("data/xpgma.fasta",
+            "data/test_scoring_distance.txt",
+            True,
+            2,
+            "wpgma")
+    
+    assert msa == ['ACTACACCCTTATGAG', 'ACTTGTCCGAAACGAT', 'AGATGACCGTTTCGAT', 'ACT____TGACCGTTT', 'GCT____TGTTACGAT', 'TC_____TGTTACGAT']
 
-    # print(msa)
+    

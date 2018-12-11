@@ -42,7 +42,7 @@ def test_run_upgma():
     """Test the upgma computation
     """
     xpgma = XPGMA()
-    new_cluster_node, n = xpgma.run("data/xpgma.fasta", "data/test_scoring_distance.txt", 1, "wpgma")
+    new_cluster_node, n = xpgma.run("data/xpgma.fasta", "data/test_scoring_distance.txt", True, 1, "wpgma")
 
     assert len(new_cluster_node.get_children()) == 2
     assert len(n) == 11

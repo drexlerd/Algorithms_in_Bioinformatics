@@ -1,7 +1,8 @@
 from prakt.xpgma import XpgmaBase
 from needleman_wunsch import NeedlemanWunsch
 from prakt.fasta_parser.fasta_parser import parse_fasta
-from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix
+from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix, MetricType
+from prakt.util.util import similarity_to_distance
 import argparse
 
 
@@ -147,9 +148,10 @@ class XPGMA(XpgmaBase):
     def run(self,
             seq_fasta_fn,
             subst_matrix_fn,
+            is_distance_fn,
             cost_gap_open,
             clustering):
-            scoring_matrix = ScoringMatrix(subst_matrix_fn, True)
+            scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn)
 
             seq_records = parse_fasta(seq_fasta_fn)
             seqs = [str(x.seq) for x in seq_records]
@@ -173,14 +175,17 @@ class XPGMA(XpgmaBase):
             result, info = nw.run(seq_fasta_fn,
                     seq_fasta_fn,
                     subst_matrix_fn,
-                    True,
+                    is_distance_fn,
                     cost_gap_open,
                     False)
 
             # initialize cluster distance matrix with computed distances
             for i in range(len(seqs)):
                 for j in range(i+1, len(seqs)):
-                    m[i][j] = result[i][j][3]
+                    if scoring_matrix.metric_type == MetricType.DISTANCE:
+                        m[i][j] = result[i][j][3]
+                    else:
+                        m[i][j] == similarity_to_distance(nw, result[i][j][2][0], scoring_matrix, cost_gap_open)
 
             if clustering == "wpgma":
                 return self.generate_wpgma(m, l, n)
@@ -195,11 +200,12 @@ if __name__ == "__main__":
     parser.add_argument("subst_matrix_fn", type=str)
     parser.add_argument("cost_gap_open", type=int)
     parser.add_argument('clustering', choices=['wpgma', 'upgma'])
+    parser.add_argument("--d", "--is_distance_fn", action='store_true')
     args = parser.parse_args()
 
     xpgma = XPGMA()
 
-    xpgma, n = xpgma.run(args.seq_fasta_fn, args.subst_matrix_fn, args.cost_gap_open, args.clustering)
+    xpgma, n = xpgma.run(args.seq_fasta_fn, args.subst_matrix_fn, args.is_distance_fn, args.cost_gap_open, args.clustering)
 
     print(xpgma)
 
