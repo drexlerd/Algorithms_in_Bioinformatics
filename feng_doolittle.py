@@ -228,8 +228,11 @@ if __name__ == "__main__":
 
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print("Feng Doolittle - Results")
+    print("Fasta file 1: %s" % (args.seq1_fasta_fn))
+    print("Fasta file 2: %s" % (args.seq2_fasta_fn))
     print("Scoring function: %s" % (args.subst_matrix_fn))
     print("Scoring type: %s" % ("Distance" if args.d else "Similarity"))
+    print("Cost gap open: %5.2f" % (args.cost_gap_open))
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print("Resulting MSA:")
     for s in result:

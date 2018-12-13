@@ -114,10 +114,10 @@ class Gotoh(GotohBase):
                     if result_case[1] == Case.GAP_SEQ1_D:
                         q[i][j].AddPredecessor(d[i][j-1], Case.GAP_SEQ1_D)
                     elif result_case[1] == Case.GAP_SEQ1_Q:
-                        q[i][j].AddPredecessor(q[i][j-1], Case.GAP_SEQ1_Q)
-                
+                        q[i][j].AddPredecessor(q[i][j-1], Case.GAP_SEQ1_Q)   
+    
 
-    def traceback(self, d, p, q, seq1, seq2, complete_traceback=True):
+    def traceback(self, d, p, q, seq1, seq2, scoring_matrix, complete_traceback=True):
         """Compute traceback starting from bottom right cell in d
 
         Args:
@@ -184,27 +184,29 @@ class Gotoh(GotohBase):
 
         # recursive case
         self.fill_matrix(d, p, q, seq1, seq2, scoring_matrix)
+        
+        print(seq1)
+        print(seq2)
+        print("d")
+        for i in range(len(seq1) + 1):
+            for j in range(len(seq2) + 1):
+                print(" & %3d" % (d[i][j].value), end='')
+            print()
 
-        #print("d")
-        #for i in range(len(seq1) + 1):
-        #    for j in range(len(seq2) + 1):
-        #        print("%3d" % (d[i][j].value), end='')
-        #    print()
+        print("p")
+        for i in range(len(seq1) + 1):
+            for j in range(len(seq2) + 1):
+                print(" & %3.0f" % (p[i][j].value), end='')
+            print()
 
-        #print("p")
-        #for i in range(len(seq1) + 1):
-        #    for j in range(len(seq2) + 1):
-        #        print("%3.0f" % (p[i][j].value), end='')
-        #    print()
-
-        #print("q")
-        #for i in range(len(seq1) + 1):
-        #    for j in range(len(seq2) + 1):
-        #        print("%3.0f" % (q[i][j].value), end='')
-        #    print()
+        print("q")
+        for i in range(len(seq1) + 1):
+            for j in range(len(seq2) + 1):
+                print(" & %3.0f" % (q[i][j].value), end='')
+            print()
 
 
-        alignments = self.traceback(d, p, q, seq1, seq2, complete_traceback)
+        alignments = self.traceback(d, p, q, seq1, seq2, scoring_matrix, complete_traceback)
 
         score = d[-1][-1].value
 
@@ -290,8 +292,12 @@ if __name__ == "__main__":
 
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print("Gotoh - Results")
+    print("Fasta file 1: %s" % (args.seq1_fasta_fn))
+    print("Fasta file 2: %s" % (args.seq2_fasta_fn))
     print("Scoring function: %s" % (args.subst_matrix_fn))
     print("Scoring type: %s" % ("Distance" if args.d else "Similarity"))
+    print("Affine gap cost open: %5.2f" % (args.affine_cost_gap_open))
+    print("Affine gap cost extend: %5.2f" % (args.affine_cost_gap_extend))
     print("Total amount of optimal aligmments: %d" % (len(result)))
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     seqs1_size = len(result)

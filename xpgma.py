@@ -51,7 +51,13 @@ class Node(object):
         return False
         
     def __repr__(self):
-        return "distance=%.2f\n" % (self.distance)
+        """Recursively (dfs) step through the xpgma and return a nice representation
+        """
+        res = "distance=%.2f\n" % (self.distance)
+        if self.children is not None:
+            for child in self.children:
+                res += "  " * self.cluster_size  + "  %s%s" % (child, child.succ)
+        return res
 
 
 class Edge(object):
@@ -62,7 +68,7 @@ class Edge(object):
         self.succ = succ
 
     def __repr__(self):
-        return "Edge weight: %.2f" % (self.weight)
+        return "Edge weight: %.2f\n" % (self.weight)
             
 
 @XpgmaBase.register
@@ -246,7 +252,19 @@ if __name__ == "__main__":
 
     xpgma = XPGMA()
 
-    xpgma, n = xpgma.run(args.seq_fasta_fn, args.subst_matrix_fn, args.is_distance_fn, args.cost_gap_open, args.clustering)
+    xpgma, n = xpgma.run(args.seq_fasta_fn, args.subst_matrix_fn, args.d, args.cost_gap_open, args.clustering)
+
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("XPGMA - Results")
+    print("Fasta file: %s" % (args.seq_fasta_fn))
+    print("Scoring function: %s" % (args.subst_matrix_fn))
+    print("Scoring type: %s" % ("Distance" if args.d else "Similarity"))
+    print("Cost gap open: %5.2f" % (args.cost_gap_open))
+    if args.clustering == "upgma":
+        print("Clustering type: UPGMA")
+    elif args.clustering == "wpgma":
+        print("Clustering type: WPGMA")
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
     print(xpgma)
 

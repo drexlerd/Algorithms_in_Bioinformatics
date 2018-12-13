@@ -148,11 +148,11 @@ class NeedlemanWunsch(NeedlemanWunschBase):
         # recursive case
         self.fill_matrix(d, seq1, seq2, scoring_matrix)
 
-        #print("d")
-        #for i in range(len(seq1) + 1):
-        #    for j in range(len(seq2) + 1):
-        #        print("%3d" % (d[i][j].value), end='')
-        #    print()
+        print("d")
+        for i in range(len(seq1) + 1):
+            for j in range(len(seq2) + 1):
+                print(" & %3d" % (d[i][j].value), end='')
+            print()
 
         alignments = self.traceback(d, seq1, seq2, complete_traceback)
 
@@ -237,8 +237,11 @@ if __name__ == '__main__':
 
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print("Needleman Wunsch - Results")
+    print("Fasta file 1: %s" % (args.seq1_fasta_fn))
+    print("Fasta file 2: %s" % (args.seq2_fasta_fn))
     print("Scoring function: %s" % (args.subst_matrix_fn))
     print("Scoring type: %s" % ("Distance" if args.d else "Similarity"))
+    print("Cost gap open: %5.2f" % (args.cost_gap_open))
     print("Total amount of optimal aligmments: %d" % (len(result)))
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     seqs1_size = len(result)
