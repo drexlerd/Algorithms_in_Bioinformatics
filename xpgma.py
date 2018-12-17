@@ -53,11 +53,15 @@ class Node(object):
     def __repr__(self):
         """Recursively (dfs) step through the xpgma and return a nice representation
         """
-        res = "distance=%.2f\n" % (self.distance)
-        if self.children is not None:
+        res = "("
+        if self.children == None:  # Leaf
+            return ""  # here could be a node id
+        else:
             for child in self.children:
-                res += "  " * self.cluster_size  + "  %s%s" % (child, child.succ)
-        return res
+                res += "%s:%.2f, " % (child.succ, child.weight)
+            res += ")"
+            return res
+
 
 
 class Edge(object):
@@ -233,6 +237,11 @@ class XPGMA(XpgmaBase):
                         m[i][j] = result[i][j][3]
                     else:
                         m[i][j] == similarity_to_distance(nw, result[i][j][2][0], scoring_matrix)
+            print("m")
+            for i in range(len(seqs)):
+                for j in range(len(seqs)):
+                    print(" & %3d" % (m[i][j]), end='')
+                print()
 
             if clustering == "wpgma":
                 return self.generate_wpgma(m, l, n)
