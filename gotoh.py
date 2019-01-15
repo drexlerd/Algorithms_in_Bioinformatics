@@ -190,19 +190,19 @@ class Gotoh(GotohBase):
         print("d")
         for i in range(len(seq1) + 1):
             for j in range(len(seq2) + 1):
-                print(" & %3d" % (d[i][j].value), end='')
+                print(" %3d" % (d[i][j].value), end='')
             print()
 
         print("p")
         for i in range(len(seq1) + 1):
             for j in range(len(seq2) + 1):
-                print(" & %3.0f" % (p[i][j].value), end='')
+                print(" %3.0f" % (p[i][j].value), end='')
             print()
 
         print("q")
         for i in range(len(seq1) + 1):
             for j in range(len(seq2) + 1):
-                print(" & %3.0f" % (q[i][j].value), end='')
+                print(" %3.0f" % (q[i][j].value), end='')
             print()
 
 

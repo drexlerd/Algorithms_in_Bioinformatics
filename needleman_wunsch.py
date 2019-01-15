@@ -151,7 +151,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
         print("d")
         for i in range(len(seq1) + 1):
             for j in range(len(seq2) + 1):
-                print(" & %3d" % (d[i][j].value), end='')
+                print("  %3d" % (d[i][j].value), end='')
             print()
 
         alignments = self.traceback(d, seq1, seq2, complete_traceback)

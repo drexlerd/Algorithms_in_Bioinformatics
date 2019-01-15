@@ -58,3 +58,14 @@ def test_feng_doolittle_similarity():
             False,
             1,
             "wpgma")
+
+def test_feng_doolittle_guideline():
+	fd = FengDoolittle()
+
+	msa = fd.run("data/feng_doolittle_guideline.fasta",
+				 "data/blosum62.txt",
+				 False,
+				 8,
+				 "wpgma")
+
+	

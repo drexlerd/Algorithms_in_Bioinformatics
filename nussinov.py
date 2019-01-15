@@ -45,7 +45,6 @@ class Nussinov(NussinovBase):
                 j = i + l
                 # print("%d, %d" % (i,j))
                 # i and j are the indices iterated in diagonal
-                # TODO
                 case_dist = [(d[i][j-1].value, (i, j, None), Case.UNPAIRED)]
                 
                 for k in range(i, j - loop_length):
@@ -63,11 +62,11 @@ class Nussinov(NussinovBase):
                 for result_case in result_sequence:
                     d[i][j].AddPredecessor(result_case[1], result_case[2])
         
-        #print()
-        #for i in range(len(sequence)):
-        #    for j in range(len(sequence) + 1):
-        #        print("%5.2f" % (d[i][j].value), end='')
-        #    print()
+        print()
+        for i in range(len(sequence)):
+            for j in range(len(sequence) + 1):
+                print("%6.2f" % (d[i][j].value), end='')
+            print()
 
 
     def traceback_rec(self, d, i, j, structure_index=0, abstract_structures=[(0, None)]):
@@ -169,8 +168,7 @@ class Nussinov(NussinovBase):
           complete_traceback (bool): All optimal structures, if True, else 1
         """
         # sequences with their ids
-        records = parse_fasta(args.seq_fasta_fn)
-        complete_traceback = args.c
+        records = parse_fasta(seq_fasta_fn)
 
         results = []
   
@@ -183,7 +181,7 @@ class Nussinov(NussinovBase):
 
             results.append(structures)
 
-        return results
+        return results, amount_pairs
 
 
 
@@ -199,11 +197,12 @@ if __name__ == "__main__":
     records = parse_fasta(args.seq_fasta_fn)
     complete_traceback = args.c
 
-    results = nussinov.run(args.seq_fasta_fn, complete_traceback)
+    results, amount_pairs = nussinov.run(args.seq_fasta_fn, complete_traceback)
 
 
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print("Nussinov Results")
+    print("Maximal number of base pairs: %d" % amount_pairs)
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     for i in range(len(results)):
         sequence = str(records[i].seq)
