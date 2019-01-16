@@ -70,13 +70,11 @@ def test_sum_of_pairs_guideline():
 				 2,
 				 "wpgma")
 
-    print(msa)
-
     assert msa == ['M____EEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDEAPRMPEAA', 
                    'MTAMEESQSDISL_ELPLSQETFSGLWKLLPPEDIL_PSP_HCMDDLLL_PQDVEEFF_E__G____P__SE_A', 
                    '_____E_____P____PLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEEFF_E__G____P__SE_A']
 
-    assert sum_of_pairs == 1297
+    assert sum_of_pairs == 493
 
     
 

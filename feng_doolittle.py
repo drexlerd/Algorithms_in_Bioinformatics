@@ -188,7 +188,7 @@ class FengDoolittle(FengDoolittleBase):
         total_score = 0
         for i in range(len(msa[0])):
             for s_i1 in range(len(msa)):
-                for s_i2 in range(s_i1, len(msa)):
+                for s_i2 in range(s_i1 + 1, len(msa)):
                     if msa[s_i1][i] == "_" or msa[s_i2][i] == "_":
                         total_score += scoring_matrix.cost_gap_open
                     else:

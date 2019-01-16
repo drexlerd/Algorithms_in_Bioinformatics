@@ -62,11 +62,11 @@ class Nussinov(NussinovBase):
                 for result_case in result_sequence:
                     d[i][j].AddPredecessor(result_case[1], result_case[2])
         
-        print()
-        for i in range(len(sequence)):
-            for j in range(len(sequence) + 1):
-                print("%6.2f" % (d[i][j].value), end='')
-            print()
+        #print()
+        #for i in range(len(sequence)):
+        #    for j in range(len(sequence) + 1):
+        #        print("%6.2f" % (d[i][j].value), end='')
+        #    print()
 
 
     def traceback_rec(self, d, i, j, structure_index=0, abstract_structures=[(0, None)]):

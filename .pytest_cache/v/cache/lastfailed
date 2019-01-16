@@ -1,4 +1,3 @@
 {
-  "tests/test_nussinov.py::test_nussinov": true,
   "tests/test_xpgma.py::test_example": true
 }
