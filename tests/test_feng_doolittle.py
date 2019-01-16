@@ -29,6 +29,7 @@ def test_similarity_to_distance():
     # the right hand side was computed from hand and is - log(S_eff)
     assert distance == - math.log((2 -- 14/8) / (6.5 -- 14/8))
 
+
 def test_feng_doolittle():
     fd = FengDoolittle()
 
@@ -53,25 +54,29 @@ def test_feng_doolittle():
 def test_feng_doolittle_similarity():
     fd = FengDoolittle()
 
-    msa = fd.run("data/xpgma.fasta",
+    msa, sum_of_pairs = fd.run("data/xpgma.fasta",
             "data/test_scoring_similarity.txt",
             False,
             1,
             "wpgma")
 
 
-def test_feng_doolittle_guideline():
+def test_sum_of_pairs_guideline():
     fd = FengDoolittle()
 
-    msa, sum_of_pairs = fd.run("data/feng_doolittle_guideline.fasta",
-				 "data/blosum62.txt",
+    msa, sum_of_pairs = fd.run("data/sum_of_pairs_guideline.fasta",
+				 "data/pam250.txt",
 				 False,
-				 8,
+				 2,
 				 "wpgma")
-    assert msa == ['ILDMDVVEGSAARFDC_KVEGYPDPEVMWFKDDNP__VKESRHFQIDYDEEGN', 
-				  'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQT___T', 
-				  'ISDTEADIGSNLRWGC_AAAGKPRPMVRWLRNGEP__LASQNRVEVLA_____', 
-				  'RRLIPAARGGEISILC_QPRAAPKATILWSKGTEI__LGNSTRVTVTSD____']
+
+    print(msa)
+
+    assert msa == ['M____EEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDEAPRMPEAA', 
+                   'MTAMEESQSDISL_ELPLSQETFSGLWKLLPPEDIL_PSP_HCMDDLLL_PQDVEEFF_E__G____P__SE_A', 
+                   '_____E_____P____PLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEEFF_E__G____P__SE_A']
+
+    assert sum_of_pairs == 1297
 
     
 

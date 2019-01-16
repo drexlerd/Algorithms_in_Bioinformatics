@@ -139,7 +139,7 @@ class FengDoolittle(FengDoolittleBase):
         min_j = None
         for i in range(len(group1)):
             for j in range(len(group2)):
-                score, alignments = nw.compute_optimal_alignments(group1[i], group2[j], scoring_matrix, complete_traceback=False)
+                score, alignments = nw.compute_optimal_alignments(group1[i], group2[j], scoring_matrix, complete_traceback=False, randomize=False)
                 pairwise_alignment = alignments[0]
                 if scoring_matrix.metric_type == MetricType.SIMILARITY:
                     # transform to distance metric                    

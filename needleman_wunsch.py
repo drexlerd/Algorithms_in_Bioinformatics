@@ -84,7 +84,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
                         d[i][j].AddPredecessor(d[i-1][j], Case.SEQ2_GAPPED)
 
 
-    def traceback(self, d, seq1, seq2, complete_traceback=False):
+    def traceback(self, d, seq1, seq2, complete_traceback=False, randomize=False):
         """Given the dynamic programming matrix and the two sequences
         this function computes all optimal alignments and returns them
         or just 1 if the complete_traceback flag is set.
@@ -98,7 +98,7 @@ class NeedlemanWunsch(NeedlemanWunschBase):
         Returns:
           list(list(str)): A list of optimal pairwise alignments
         """
-        tracebacks = compute_traceback(d[-1][-1], all)
+        tracebacks = compute_traceback(d[-1][-1], complete_traceback, randomize)
         alignments = []
         for traceback in tracebacks:
             alignment_seq1 = ""
@@ -121,12 +121,10 @@ class NeedlemanWunsch(NeedlemanWunschBase):
                     alignment_seq2 += "_"
                     i += 1
             alignments.append((alignment_seq1, alignment_seq2))
-        if not complete_traceback:
-            return [alignments[0]]
         return alignments
 
 
-    def compute_optimal_alignments(self, seq1, seq2, scoring_matrix, complete_traceback):
+    def compute_optimal_alignments(self, seq1, seq2, scoring_matrix, complete_traceback=False, randomize=False):
         """Computes optimal pairwise alignments between seq1 and seq2 with given scoring matrix
 
         Args:
@@ -148,13 +146,13 @@ class NeedlemanWunsch(NeedlemanWunschBase):
         # recursive case
         self.fill_matrix(d, seq1, seq2, scoring_matrix)
 
-        print("d")
-        for i in range(len(seq1) + 1):
-            for j in range(len(seq2) + 1):
-                print("  %3d" % (d[i][j].value), end='')
-            print()
+        #print("d")
+        #for i in range(len(seq1) + 1):
+        #    for j in range(len(seq2) + 1):
+        #        print("  %3d" % (d[i][j].value), end='')
+        #    print()
 
-        alignments = self.traceback(d, seq1, seq2, complete_traceback)
+        alignments = self.traceback(d, seq1, seq2, complete_traceback, randomize)
 
         score = d[-1][-1].value
 

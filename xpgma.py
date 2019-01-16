@@ -237,11 +237,11 @@ class XPGMA(XpgmaBase):
                         m[i][j] = result[i][j][3]
                     else:
                         m[i][j] == similarity_to_distance(nw, result[i][j][2][0], scoring_matrix)
-            print("m")
-            for i in range(len(seqs)):
-                for j in range(len(seqs)):
-                    print(" & %3d" % (m[i][j]), end='')
-                print()
+            #print("m")
+            #for i in range(len(seqs)):
+            #    for j in range(len(seqs)):
+            #        print("%3d" % (m[i][j]), end='')
+            #    print()
 
             if clustering == "wpgma":
                 return self.generate_wpgma(m, l, n)
