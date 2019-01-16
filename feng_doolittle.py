@@ -99,15 +99,17 @@ class FengDoolittle(FengDoolittleBase):
         for i in range(len(group3[0])):
             c1 = group3[0][i]
             c2 = group3[1][i]
-            if c1 == group1[min_i][i1]:
+            # i1 < len(group1[0]): group1 may be shorter so gap out the rest if the end is reached
+            # c1 == group1[min_i][i1]: the current symbol of the sequence in pairwise alignment matches the one in the group at index i
+            if i1 < len(group1[0]) and c1 == group1[min_i][i1]:
                 # copy alignment 1 column to result
                 for j in range(len(group1)):
                     result[j] += group1[j][i1]
                 i1 += 1
-            else:
+            else: # gap out all
                 for j in range(len(group1)):
                     result[j] += "_"
-            if c2 == group2[min_j][i2]:
+            if i2 < len(group2[0]) and c2 == group2[min_j][i2]:
                 for j in range(len(group1), len(group1) + len(group2)):
                     result[j] += group2[j-len(group1)][i2]
                 i2 += 1
@@ -175,6 +177,27 @@ class FengDoolittle(FengDoolittleBase):
         return [string.replace("X", "_") for string in group]
 
 
+    def compute_sum_of_pairs_score(self, scoring_matrix, msa):
+        """Computes the sum of pairs score for a given multiple sequence alignment msa
+        with the given scoring_matrix and gap_cost_open
+
+        Args:
+          scoring_matrix (ScoringMatrix): The scoring matrix
+          gap_cost_open (int): 
+        """
+        total_score = 0
+        for i in range(len(msa[0])):
+            for s_i1 in range(len(msa)):
+                for s_i2 in range(s_i1, len(msa)):
+                    if msa[s_i1][i] == "_" or msa[s_i2][i] == "_":
+                        total_score += scoring_matrix.cost_gap_open
+                    else:
+                        total_score += scoring_matrix.score(msa[s_i1][i], msa[s_i2][i])
+        return total_score
+
+
+
+
     def run(self,
             seq_fasta_fn,
             subst_matrix_fn,
@@ -205,7 +228,11 @@ class FengDoolittle(FengDoolittleBase):
 
         scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, cost_gap_open)
 
-        return self.compute_msa(xpgma, nw, scoring_matrix)
+        msa = self.compute_msa(xpgma, nw, scoring_matrix)
+
+        sum_of_pairs = self.compute_sum_of_pairs_score(scoring_matrix, msa)
+
+        return msa, sum_of_pairs
 
 
 if __name__ == "__main__":
@@ -220,7 +247,7 @@ if __name__ == "__main__":
 
     fd = FengDoolittle()
 
-    result = fd.run(args.seq_fasta_fn,
+    msa, sum_of_pairs = fd.run(args.seq_fasta_fn,
             args.subst_matrix_fn,
             args.d,
             args.cost_gap_open,
@@ -228,12 +255,12 @@ if __name__ == "__main__":
 
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print("Feng Doolittle - Results")
-    print("Fasta file 1: %s" % (args.seq1_fasta_fn))
-    print("Fasta file 2: %s" % (args.seq2_fasta_fn))
+    print("Fasta file 1: %s" % (args.seq_fasta_fn))
     print("Scoring function: %s" % (args.subst_matrix_fn))
     print("Scoring type: %s" % ("Distance" if args.d else "Similarity"))
     print("Cost gap open: %5.2f" % (args.cost_gap_open))
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("Sum of pairs score: %.2f" % (sum_of_pairs))
     print("Resulting MSA:")
-    for s in result:
+    for s in msa:
         print(s)

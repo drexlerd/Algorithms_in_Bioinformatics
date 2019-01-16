@@ -115,6 +115,9 @@ class Nussinov(NussinovBase):
     def compute_optimal_abstract_structure(self, sequence, complete_traceback):
         """For a given sequence compute the abstract structure
 
+        An abstract structure is equivalent to the resulting structure,
+        but the representation differs because of the way its computed
+
         Args:
           sequence (str): A string
           complete_traceback (bool): True, full traceback

@@ -4,6 +4,7 @@
   "tests/test_feng_doolittle.py::test_similarity_to_distance",
   "tests/test_feng_doolittle.py::test_feng_doolittle",
   "tests/test_feng_doolittle.py::test_feng_doolittle_similarity",
+  "tests/test_feng_doolittle.py::test_feng_doolittle_guideline",
   "tests/test_gotoh.py::test_instance",
   "tests/test_gotoh.py::test_example",
   "tests/test_needleman_wunsch.py::test_instance",

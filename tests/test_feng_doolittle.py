@@ -33,7 +33,7 @@ def test_feng_doolittle():
     fd = FengDoolittle()
 
     # test with low gap cost
-    msa = fd.run("data/xpgma.fasta",
+    msa, sum_of_pairs = fd.run("data/xpgma.fasta",
             "data/test_scoring_distance.txt",
             True,
             1,
@@ -41,7 +41,7 @@ def test_feng_doolittle():
     assert msa == ['GCT____TGTTACGAT', 'TC_____TGTTACGAT', 'ACTTGACCG_TT___T', 'ACTACACCCTTATGAG', 'ACTTGTCCGAAACGAT', 'AGATGACCGTTTCGAT']
     
     # test with high gap cost => likelier to align gap with gap
-    msa = fd.run("data/xpgma.fasta",
+    msa, sum_of_pairs = fd.run("data/xpgma.fasta",
             "data/test_scoring_distance.txt",
             True,
             2,
@@ -59,13 +59,20 @@ def test_feng_doolittle_similarity():
             1,
             "wpgma")
 
-def test_feng_doolittle_guideline():
-	fd = FengDoolittle()
 
-	msa = fd.run("data/feng_doolittle_guideline.fasta",
+def test_feng_doolittle_guideline():
+    fd = FengDoolittle()
+
+    msa, sum_of_pairs = fd.run("data/feng_doolittle_guideline.fasta",
 				 "data/blosum62.txt",
 				 False,
 				 8,
 				 "wpgma")
+    assert msa == ['ILDMDVVEGSAARFDC_KVEGYPDPEVMWFKDDNP__VKESRHFQIDYDEEGN', 
+				  'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQT___T', 
+				  'ISDTEADIGSNLRWGC_AAAGKPRPMVRWLRNGEP__LASQNRVEVLA_____', 
+				  'RRLIPAARGGEISILC_QPRAAPKATILWSKGTEI__LGNSTRVTVTSD____']
+
+    
 
 	
