@@ -44,19 +44,15 @@ class Gotoh(GotohBase):
 
         # base case 
         for i in range(1, len(seq1) + 1):
-            if i == 1:
-                d[i][0].SetValue(scoring_matrix.cost_gap_open)
-            else:
-                d[i][0].SetValue(scoring_matrix.cost_gap_open + (i-1) * scoring_matrix.cost_gap_extend)
-            d[i][0].AddPredecessor(d[i-1][0], Case.GAP_SEQ2_D)
+            d[i][0].SetValue(scoring_matrix.cost_gap_open + (i-1) * scoring_matrix.cost_gap_extend)
             q[i][0].SetValue(scoring_matrix.extreme_value)
+            if i < len(seq1) + 1:
+                d[i][0].AddPredecessor(d[i-1][0], Case.GAP_SEQ2_D)
         for j in range(1, len(seq2) + 1):
-            if j == 1:
-                d[0][j].SetValue(scoring_matrix.cost_gap_open)
-            else:
-                d[0][j].SetValue(scoring_matrix.cost_gap_open + (j-1) * scoring_matrix.cost_gap_extend)
-            d[0][j].AddPredecessor(d[0][j-1], Case.GAP_SEQ1_D)
+            d[0][j].SetValue(scoring_matrix.cost_gap_open + (j-1) * scoring_matrix.cost_gap_extend)
             p[0][j].SetValue(scoring_matrix.extreme_value)
+            if j < len(seq2) + 1:
+                d[0][j].AddPredecessor(d[0][j-1], Case.GAP_SEQ1_D)
 
 
     def fill_matrix(self, d, p, q, 
@@ -186,7 +182,6 @@ class Gotoh(GotohBase):
         self.fill_matrix(d, p, q, seq1, seq2, scoring_matrix)
         
         #print(seq1)
-        #print(seq2)
         #print("d")
         #for i in range(len(seq1) + 1):
         #    for j in range(len(seq2) + 1):
@@ -244,7 +239,6 @@ class Gotoh(GotohBase):
             # scoring function
             scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, affine_cost_gap_open, affine_cost_gap_extend)
         
-
             # check if the sequences are legal
             if not check_sequences_alphabet(records_f1, SequenceType.PROTEIN) \
               or not check_sequences_alphabet(records_f2, SequenceType.PROTEIN):

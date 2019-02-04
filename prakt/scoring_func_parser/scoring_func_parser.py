@@ -29,11 +29,11 @@ class ScoringMatrix(object):
         # alphabet
         self.alphabet = []
 
-        self._parse_scoring_func(filename)
-
         # the type of the scoring metric (distance or similarity)
         self.metric_type = None
         self._set_metric_type(is_distance_fn)
+
+        self._parse_scoring_func(filename)
 
         # self._add_neutral_symbol()  # added special case in nw for that
 
@@ -75,7 +75,7 @@ class ScoringMatrix(object):
                     self.position_to_symbol_col = dict(zip(range(len(symbol_col_list)), symbol_col_list))
                     self.alphabet = symbol_col_list
                 else:
-                    line_list_scores = [int(i) for i in line_list[1:]]
+                    line_list_scores = [int(i)for i in line_list[1:]]
                     line_symbol = line_list[0]
                     self.scoring_matrix.append(line_list_scores)  # first element is the symbol
                     symbol_row_list.append(line_symbol)
