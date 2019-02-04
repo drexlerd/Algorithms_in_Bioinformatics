@@ -76,6 +76,29 @@ def compute_traceback_dfs(current_cell, current_path=[], complete_traceback=Fals
 
 
 def similarity_to_distance(nw, pairwise_alignment, scoring_matrix):
+    seq1 = pairwise_alignment[0].replace("_", "")
+    seq2 = pairwise_alignment[1].replace("_", "")
+
+    S_ab, _ = nw.compute_optimal_alignments(seq1, seq2, scoring_matrix, complete_traceback=False)
+
+    S_aa, _ = nw.compute_optimal_alignments(seq1, seq1, scoring_matrix, complete_traceback=False)
+
+    S_bb, _ = nw.compute_optimal_alignments(seq2, seq2, scoring_matrix, complete_traceback=False)
+
+    S_ab_max = (S_aa + S_bb) / 2
+
+    seq1_shuffled = ''.join(random.sample(seq1,len(seq1)))
+    seq2_shuffled = ''.join(random.sample(seq2,len(seq2)))
+
+    S_rand, _ = nw.compute_optimal_alignments(seq1_shuffled, seq2_shuffled, scoring_matrix, complete_traceback=False)
+
+    S_eff = (S_ab - S_rand) / (S_ab_max - S_rand)
+
+    return - math.log(S_eff)
+
+
+
+def similarity_to_distance_ext(nw, pairwise_alignment, scoring_matrix):
     """Converts similarity score from a pairwise alignment to a distance score
     using approximation algorithm
     

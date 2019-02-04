@@ -1,7 +1,7 @@
 [
   "tests/test_fasta_parser.py::test_parse_fast",
   "tests/test_feng_doolittle.py::test_count_occurences_symbol_in_seq",
-  "tests/test_feng_doolittle.py::test_similarity_to_distance",
+  "tests/test_feng_doolittle.py::test_similarity_to_distance_ext",
   "tests/test_feng_doolittle.py::test_feng_doolittle",
   "tests/test_feng_doolittle.py::test_feng_doolittle_similarity",
   "tests/test_feng_doolittle.py::test_sum_of_pairs_guideline",

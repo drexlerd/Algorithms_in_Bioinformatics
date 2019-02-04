@@ -7,7 +7,7 @@ from prakt.fd import FengDoolittleBase
 from xpgma import XPGMA, Node
 from needleman_wunsch import NeedlemanWunsch
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix, MetricType
-from prakt.util.util import similarity_to_distance
+from prakt.util.util import similarity_to_distance, similarity_to_distance_ext
 import math
 import argparse
 
@@ -19,7 +19,8 @@ class FengDoolittle(FengDoolittleBase):
     def compute_msa(self, 
                     xpgma_root_node : Node,
                     nw : NeedlemanWunsch,
-                    scoring_matrix):
+                    scoring_matrix,
+                    metrict_conversion_type):
         """Computes the multiple sequence alignment.
         Guide tree is traversed depth first.
 
@@ -30,14 +31,15 @@ class FengDoolittle(FengDoolittleBase):
           nw (NeedlemanWunsch): Algorithm to compute pairwise alignments with their respective scores
           scoring_matrix (ScoringMatrix): scoring matrix
         """
-        msa_with_neutral_elements = self._compute_msa_rec(xpgma_root_node, nw, scoring_matrix)
+        msa_with_neutral_elements = self._compute_msa_rec(xpgma_root_node, nw, scoring_matrix, metrict_conversion_type)
         return self.replace_neutral_symbol_with_gap_symbol(msa_with_neutral_elements)
         
     
     def _compute_msa_rec(self, 
                         node : Node,
                         nw : NeedlemanWunsch,
-                        scoring_matrix):
+                        scoring_matrix,
+                        metrict_conversion_type):
         """Recursively computes the multiple sequence alignment.
         Guide tree is traversed depth first.
 
@@ -65,13 +67,13 @@ class FengDoolittle(FengDoolittleBase):
         else:
             assert len(node.get_children()) == 2
             child1, child2 = node.get_children() 
-            alignment1 = self._compute_msa_rec(child1.succ, nw, scoring_matrix)
-            alignment2 = self._compute_msa_rec(child2.succ, nw, scoring_matrix)
+            alignment1 = self._compute_msa_rec(child1.succ, nw, scoring_matrix, metrict_conversion_type)
+            alignment2 = self._compute_msa_rec(child2.succ, nw, scoring_matrix, metrict_conversion_type)
             #print("Inductive case")
             #print(alignment1)
             #print(alignment2)
             # find pairwise alignment with minimal distance
-            min_pairwise_alignment, min_i, min_j = self.find_best_pairwise_alignment(nw, scoring_matrix, alignment1, alignment2)
+            min_pairwise_alignment, min_i, min_j = self.find_best_pairwise_alignment(nw, scoring_matrix, alignment1, alignment2, metrict_conversion_type)
             #print(min_pairwise_alignment)
             # align according to best pairwise alignment and return new alignment
             alignment3 = self.align_group_to_group_by_group(min_i, min_j, alignment1, alignment2, min_pairwise_alignment)
@@ -119,7 +121,7 @@ class FengDoolittle(FengDoolittleBase):
         return result
 
         
-    def find_best_pairwise_alignment(self, nw, scoring_matrix, group1, group2):
+    def find_best_pairwise_alignment(self, nw, scoring_matrix, group1, group2, metrict_conversion_type):
         """Compute the best pairwise alignment between sequences of group1, group2.
 
         Args:
@@ -142,8 +144,12 @@ class FengDoolittle(FengDoolittleBase):
                 score, alignments = nw.compute_optimal_alignments(group1[i], group2[j], scoring_matrix, complete_traceback=False, randomize=False)
                 pairwise_alignment = alignments[0]
                 if scoring_matrix.metric_type == MetricType.SIMILARITY:
-                    # transform to distance metric                    
-                    score = similarity_to_distance(nw, pairwise_alignment, scoring_matrix)
+                    if metrict_conversion_type == 0:
+                        score = - score
+                    elif metrict_conversion_type == 1:
+                        score = similarity_to_distance(nw, pairwise_alignment, scoring_matrix)
+                    elif metrict_conversion_type == 2:
+                        score == similarity_to_distance_ext(nw, pairwise_alignment, scoring_matrix)
                 if score < min_score:
                     min_score = score
                     min_pairwise_alignment = pairwise_alignment
@@ -203,6 +209,7 @@ class FengDoolittle(FengDoolittleBase):
             subst_matrix_fn,
             is_distance_fn,
             cost_gap_open,
+            metrict_conversion_type,
             clustering):
         """
         Calculate optimal alignment with Feng-Doolittle algorithm.
@@ -222,13 +229,13 @@ class FengDoolittle(FengDoolittleBase):
         """
 
         xpgma = XPGMA()
-        xpgma, _ = xpgma.run(seq_fasta_fn, subst_matrix_fn, is_distance_fn, cost_gap_open, clustering)
+        xpgma, _ = xpgma.run(seq_fasta_fn, subst_matrix_fn, is_distance_fn, cost_gap_open, metrict_conversion_type, clustering)
 
         nw = NeedlemanWunsch()
 
         scoring_matrix = ScoringMatrix(subst_matrix_fn, is_distance_fn, cost_gap_open)
 
-        msa = self.compute_msa(xpgma, nw, scoring_matrix)
+        msa = self.compute_msa(xpgma, nw, scoring_matrix, metrict_conversion_type)
 
         sum_of_pairs = self.compute_sum_of_pairs_score(scoring_matrix, msa)
 
@@ -241,6 +248,7 @@ if __name__ == "__main__":
     parser.add_argument("subst_matrix_fn", type=str)
     parser.add_argument("cost_gap_open", type=int)
     parser.add_argument('clustering', choices=['wpgma', 'upgma'])
+    parser.add_argument("metrict_conversion_type", type=int, choices=range(0, 3))
     parser.add_argument("--d", "--is_distance_fn", action='store_true')
     parser.add_argument("--c", "--complete_traceback", action='store_true')
     args = parser.parse_args()

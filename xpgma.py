@@ -3,11 +3,12 @@ Module name: XPGMA
 Module author: dominik drexler <drexlerd@informatik.uni-freiburg.de>
 """
 
+import random
 from prakt.xpgma import XpgmaBase
 from needleman_wunsch import NeedlemanWunsch
 from prakt.fasta_parser.fasta_parser import parse_fasta
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix, MetricType
-from prakt.util.util import similarity_to_distance
+from prakt.util.util import similarity_to_distance_ext, similarity_to_distance
 import argparse
 
 
@@ -33,6 +34,9 @@ class Node(object):
     def set_cluster_size(self, value):
         self.cluster_size = value
 
+    def set_seq_record(self, seq_record):
+        self.seq_record = seq_record
+
     def get_cluster_size(self):
         return self.cluster_size
         
@@ -55,7 +59,7 @@ class Node(object):
         """
         res = "("
         if self.children == None:  # Leaf
-            return ""  # here could be a node id
+            return str(self.seq_record.id)  # here could be a node id
         else:
             for child in self.children:
                 res += "%s:%.2f, " % (child.succ, child.weight)
@@ -188,6 +192,7 @@ class XPGMA(XpgmaBase):
             subst_matrix_fn,
             is_distance_fn,
             cost_gap_open,
+            metrict_conversion_type,
             clustering):
             """
             Computes a XPGMA
@@ -235,8 +240,13 @@ class XPGMA(XpgmaBase):
                 for j in range(i+1, len(seqs)):
                     if scoring_matrix.metric_type == MetricType.DISTANCE:
                         m[i][j] = result[i][j][3]
-                    else:
-                        m[i][j] == similarity_to_distance(nw, result[i][j][2][0], scoring_matrix)
+                    elif metrict_conversion_type == 0:
+                        m[i][j] = - result[i][j][3]
+                    elif metrict_conversion_type == 1:
+                        m[i][j] = similarity_to_distance(nw, result[i][j][2][0], scoring_matrix)
+                    elif metrict_conversion_type == 2:
+                        m[i][j] == similarity_to_distance_ext(nw, result[i][j][2][0], scoring_matrix)
+                    
             #print("m")
             #for i in range(len(seqs)):
             #    for j in range(len(seqs)):
@@ -256,12 +266,13 @@ if __name__ == "__main__":
     parser.add_argument("subst_matrix_fn", type=str)
     parser.add_argument("cost_gap_open", type=int)
     parser.add_argument('clustering', choices=['wpgma', 'upgma'])
+    parser.add_argument("metrict_conversion_type", type=int, choices=range(0, 3))
     parser.add_argument("--d", "--is_distance_fn", action='store_true')
     args = parser.parse_args()
 
     xpgma = XPGMA()
 
-    xpgma, n = xpgma.run(args.seq_fasta_fn, args.subst_matrix_fn, args.d, args.cost_gap_open, args.clustering)
+    xpgma, n = xpgma.run(args.seq_fasta_fn, args.subst_matrix_fn, args.d, args.cost_gap_open, args.metrict_conversion_type, args.clustering)
 
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print("XPGMA - Results")

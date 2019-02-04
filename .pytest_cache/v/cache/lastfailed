@@ -1,3 +1,4 @@
 {
+  "tests/test_feng_doolittle.py::test_similarity_to_distance": true,
   "tests/test_xpgma.py::test_example": true
 }

@@ -51,16 +51,3 @@ def test_example_similarity():
     assert result[0][0][2][0] == ("__TCCGA_",
                                   "TACGCAGA")
 
-
-# def test_example_fail():
-#     """Example of a failing test."""
-#
-#     nw = NeedlemanWunsch()
-#     result = nw.run("data/sequence1.fa",
-#                     "data/sequence2.fa",
-#                     "data/blosum62.txt",
-#                     5,
-#                     True)
-#     (id_seq1, seq1, id_seq2, seq2, score, alignments) = result
-#
-#     assert len(alignments) != 1

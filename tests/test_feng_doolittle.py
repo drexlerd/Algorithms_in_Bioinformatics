@@ -2,7 +2,7 @@ from prakt.fd import FengDoolittleBase
 from feng_doolittle import FengDoolittle
 from needleman_wunsch import NeedlemanWunsch
 from prakt.scoring_func_parser.scoring_func_parser import ScoringMatrix
-from prakt.util.util import similarity_to_distance, count_occurences_symbol_in_seq, count_gaps_in_pairwise_alignment
+from prakt.util.util import similarity_to_distance_ext, count_occurences_symbol_in_seq, count_gaps_in_pairwise_alignment
 import math
 
 
@@ -16,12 +16,12 @@ def test_count_occurences_symbol_in_seq():
     assert count == 1
 
 
-def test_similarity_to_distance():
+def test_similarity_to_distance_ext():
     scoring_matrix = ScoringMatrix("data/test_scoring_similarity.txt", is_distance_fn=False, cost_gap_open=1)
     nw = NeedlemanWunsch()
     fd = FengDoolittle()
     pairwise_alignment = ("__TCCGA_", "TACGCAGA")
-    distance = similarity_to_distance(nw, pairwise_alignment, scoring_matrix)
+    distance = similarity_to_distance_ext(nw, pairwise_alignment, scoring_matrix)
 
     count = count_gaps_in_pairwise_alignment(pairwise_alignment)
     assert count == 3
@@ -38,6 +38,7 @@ def test_feng_doolittle():
             "data/test_scoring_distance.txt",
             True,
             1,
+            0,
             "wpgma")
     assert msa == ['GCT____TGTTACGAT', 'TC_____TGTTACGAT', 'ACTTGACCG_TT___T', 'ACTACACCCTTATGAG', 'ACTTGTCCGAAACGAT', 'AGATGACCGTTTCGAT']
     
@@ -46,6 +47,7 @@ def test_feng_doolittle():
             "data/test_scoring_distance.txt",
             True,
             2,
+            0,
             "wpgma")
     
     assert msa == ['ACTACACCCTTATGAG', 'ACTTGTCCGAAACGAT', 'AGATGACCGTTTCGAT', 'ACT____TGACCGTTT', 'GCT____TGTTACGAT', 'TC_____TGTTACGAT']
@@ -58,6 +60,7 @@ def test_feng_doolittle_similarity():
             "data/test_scoring_similarity.txt",
             False,
             1,
+            2,
             "wpgma")
 
 
@@ -68,13 +71,15 @@ def test_sum_of_pairs_guideline():
 				 "data/pam250.txt",
 				 False,
 				 2,
+                                 0,
 				 "wpgma")
 
-    assert msa == ['M____EEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDEAPRMPEAA', 
-                   'MTAMEESQSDISL_ELPLSQETFSGLWKLLPPEDIL_PSP_HCMDDLLL_PQDVEEFF_E__G____P__SE_A', 
-                   '_____E_____P____PLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEEFF_E__G____P__SE_A']
+    assert msa == ['MTAMEESQSDISLELPLSQETFSGLWKLLPPEDIL_PSP_HCMDDLLL_PQDVEEFF_E__G____P__SE_A', 
+                   'M___EEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDEAPRMPEAA', 
+                   '_____________EPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEEFF_E__G____P__SE_A']
 
-    assert sum_of_pairs == 493
+
+    assert sum_of_pairs == 519
 
     
 
