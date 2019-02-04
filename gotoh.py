@@ -44,12 +44,12 @@ class Gotoh(GotohBase):
 
         # base case 
         for i in range(1, len(seq1) + 1):
-            d[i][0].SetValue(scoring_matrix.cost_gap_open + (i-1) * scoring_matrix.cost_gap_extend)
+            d[i][0].SetValue(scoring_matrix.cost_gap_open + i * scoring_matrix.cost_gap_extend)
             q[i][0].SetValue(scoring_matrix.extreme_value)
             if i < len(seq1) + 1:
                 d[i][0].AddPredecessor(d[i-1][0], Case.GAP_SEQ2_D)
         for j in range(1, len(seq2) + 1):
-            d[0][j].SetValue(scoring_matrix.cost_gap_open + (j-1) * scoring_matrix.cost_gap_extend)
+            d[0][j].SetValue(scoring_matrix.cost_gap_open + j * scoring_matrix.cost_gap_extend)
             p[0][j].SetValue(scoring_matrix.extreme_value)
             if j < len(seq2) + 1:
                 d[0][j].AddPredecessor(d[0][j-1], Case.GAP_SEQ1_D)
@@ -75,12 +75,12 @@ class Gotoh(GotohBase):
                 score_aligning = scoring_matrix.score(x_i, y_j)
 
                 # compute p
-                sequence_p = [(d[i-1][j].value + scoring_matrix.cost_gap_open, Case.GAP_SEQ2_D), 
+                sequence_p = [(d[i-1][j].value + scoring_matrix.cost_gap_open + scoring_matrix.cost_gap_extend, Case.GAP_SEQ2_D), 
                                 (p[i-1][j].value + scoring_matrix.cost_gap_extend, Case.GAP_SEQ2_P)]
                 result_sequence_p = scoring_matrix.function_operation(sequence_p)
                 p[i][j].SetValue(result_sequence_p[0][0])  # set value
                 # compute q
-                sequence_q = [(d[i][j-1].value + scoring_matrix.cost_gap_open, Case.GAP_SEQ1_D), 
+                sequence_q = [(d[i][j-1].value + scoring_matrix.cost_gap_open + scoring_matrix.cost_gap_extend, Case.GAP_SEQ1_D), 
                                 (q[i][j-1].value + scoring_matrix.cost_gap_extend, Case.GAP_SEQ1_Q)]
                 result_sequence_q = scoring_matrix.function_operation(sequence_q)
                 q[i][j].SetValue(result_sequence_q[0][0])  # set value

@@ -24,17 +24,12 @@ def test_example():
     assert result[0][0][1].id == "idB"
     assert str(result[0][0][0].seq) == "TCCGA"
     assert str(result[0][0][1].seq) == "TACGCAGA"
-    assert result[0][0][3] == -3
+    assert result[0][0][3] == -4
     assert len(result[0][0][2]) == 3
-    assert result[0][0][2][0] == ("T___CCGA",
-                             "TACGCAGA")
-    assert result[0][0][2][1] == ("TCC___GA",
-                             "TACGCAGA")
-    assert result[0][0][2][2] == ("TCCG___A",
-                             "TACGCAGA")
+    assert result[0][0][2][0] == ('T___CCGA', 'TACGCAGA') 
 
 
-def test_guideline():
+def test_guideline_pam():
     """Test cases given on the guideline from 04.02.2019
     
     the results are not as provided by the guideline
@@ -51,37 +46,90 @@ def test_guideline():
 
     # the results is a upper triangle matrix of shape n x n.
     seq1_seq2 = result[0][1]
-    #assert seq1_seq2[3] == 33
-    #assert len(seq1_seq2[2]) == 2
-    #assert seq1_seq2[2][0] == ('ILDMDVVEGSAARFDCKVEG_YPDPEVMWFKDDNPVKESRHFQIDYDEEGN', 
-    #                           'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTD_GRHFVSQTT')
+    assert seq1_seq2[3] == 33
+    assert len(seq1_seq2[2]) == 2
+    assert seq1_seq2[2][0] == ('ILDMDVVEGSAARFDCKVEG_YPDPEVMWFKDDNP___VKESRHFQIDYDEEGN',
+                               'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHF____VSQTT')
 
     seq1_seq3 = result[0][2]
-    #assert seq1_seq3[3] == 60
-    #assert len(seq1_seq3[2]) == 2
-    #assert seq1_seq3[2][0] == ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
-    #                           'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPL_ASQN_RV__EVLA_')
+    assert seq1_seq3[3] == 60
+    assert len(seq1_seq3[2]) == 2
+    assert seq1_seq3[2][0] == ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                               'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEV_____LA')
 
-    #seq1_seq4 = result[0][3]
-    #assert seq1_seq4[3] == 30
-    #assert len(seq1_seq4[2]) == 2
-    #assert seq1_seq4[2][0] == ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
-    #                           'RRLIPAARGGEISILCQPRAAPKATILWSKGTE_ILGNST_RV__TVTSD')
+    seq1_seq4 = result[0][3]
+    assert seq1_seq4[3] == 30
+    assert len(seq1_seq4[2]) == 2
+    assert seq1_seq4[2][0] == ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                               'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTV____TSD')
 
     seq2_seq3 = result[1][2]
-    #assert seq2_seq3[3] == 9
-    #assert len(seq2_seq3[2]) == 1
-    #assert seq2_seq3[2][0] == ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
-    #                           'ISDTEADIGSNLRWGCAAAGKPRPMV_RWLRNGEP__LASQNR__VEVLA')
+    assert seq2_seq3[3] == 17
+    assert len(seq2_seq3[2]) == 2
+    assert seq2_seq3[2][0] == ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                               'ISDTEADIGSNLRWGCAAAGKPRPMV_RWLRNG____EPLASQNRVEVLA')
 
     seq2_seq4 = result[1][3]
-    #assert seq2_seq4[3] == 41
-    #assert len(seq2_seq4[2]) == 1
-    #assert seq2_seq4[2][0] == ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
-    #                           'RRLIPAARGGEISILCQPRAA_PKATILW_SKG_TEILGNSTRVTVT_SD')
+    assert seq2_seq4[3] == 9
+    assert len(seq2_seq4[2]) == 1
+    assert seq2_seq4[2][0] == ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                               'RRLIPAARGGEISILCQPRAA_PKATILW__SKGTEILGNSTRVTVT_SD')
 
     seq3_seq4 = result[2][3]
-    #assert seq3_seq4[3] == 17
-    #assert len(seq3_seq4[2]) == 2
-    #assert seq3_seq4[2][0] == ('ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA_',
-    #                           'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')
+    assert seq3_seq4[3] == 41
+    assert len(seq3_seq4[2]) == 1
+    assert seq3_seq4[2][0] == ('ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA_',
+                               'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')
+
+
+def test_guideline_blosum():
+    """Test cases given on the guideline from 04.02.2019
+    
+    the results are not as provided by the guideline
+    """
+    gotoh = Gotoh()
+
+    result, info = gotoh.run("data/xpgma_guideline.fasta",
+                    "data/xpgma_guideline.fasta",
+                    "data/blosum62.txt",
+                    False,
+                    11,
+                    1,
+                    True)
+
+    # the results is a upper triangle matrix of shape n x n.
+    seq1_seq2 = result[0][1]
+    assert seq1_seq2[3] == 0
+    assert len(seq1_seq2[2]) == 1
+    assert seq1_seq2[2][0] == ('ILDMDVVEGSAARFDCKVEG_YPDPEVMWFKDDNP___VKESRHFQIDYDEEGN',
+                               'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFV____SQTT')
+
+    seq1_seq3 = result[0][2]
+    assert seq1_seq3[3] == 41
+    assert len(seq1_seq3[2]) == 3
+    assert seq1_seq3[2][0] == ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                               'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEV_____LA')
+
+    seq1_seq4 = result[0][3]
+    assert seq1_seq4[3] == 5
+    assert len(seq1_seq4[2]) == 1
+    assert seq1_seq4[2][0] == ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                               'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD____')
+
+    seq2_seq3 = result[1][2]
+    assert seq2_seq3[3] == -5
+    assert len(seq2_seq3[2]) == 4
+    assert seq2_seq3[2][0] == ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                               'ISDTEADIGSNLRWGC_AAAGKPRPMVRWLRNG____EPLASQNRVEVLA')
+
+    seq2_seq4 = result[1][3]
+    assert seq2_seq4[3] == -4
+    assert len(seq2_seq4[2]) == 2
+    assert seq2_seq4[2][0] == ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                               'RRLIPAARGGEISILCQPRA_APKATILW__SKGTEILGNSTRVTVT_SD')
+
+    seq3_seq4 = result[2][3]
+    assert seq3_seq4[3] == 18
+    assert len(seq3_seq4[2]) == 1
+    assert seq3_seq4[2][0] == ('ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA_',
+                               'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')
