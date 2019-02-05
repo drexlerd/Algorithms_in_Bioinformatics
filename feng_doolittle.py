@@ -259,6 +259,7 @@ if __name__ == "__main__":
             args.subst_matrix_fn,
             args.d,
             args.cost_gap_open,
+            args.metrict_conversion_type,
             args.clustering)
 
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")

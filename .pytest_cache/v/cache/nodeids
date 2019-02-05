@@ -17,7 +17,7 @@
   "tests/test_nussinov.py::test_fill_matrix",
   "tests/test_nussinov.py::test_compute_optimal_abstract_structure",
   "tests/test_nussinov.py::test_convert_abstract_structure_to_structure",
-  "tests/test_nussinov.py::test_nussinov",
+  "tests/test_nussinov.py::test_nussinov_guideline",
   "tests/test_scoring_matrix.py::test_scoring_matrix",
   "tests/test_xpgma.py::test_generate_wpgma",
   "tests/test_xpgma.py::test_generate_upgma",
