@@ -25,8 +25,8 @@ class Nussinov(NussinovBase):
           c2 (char): A character
         """
         if c1 == "A" and c2 == "U" or c1 == "U" and c2 == "A" \
-          or c1 == "G" and c2 == "C" or c1 == "C" and c2 == "G" \
-          or c1 == "G" and c2 == "U" or c1 == "U" and c2 == "G":
+          or c1 == "G" and c2 == "C" or c1 == "C" and c2 == "G":
+          # or c1 == "G" and c2 == "U" or c1 == "U" and c2 == "G":
             return True
         return False
 
@@ -42,20 +42,15 @@ class Nussinov(NussinovBase):
         for l in range(min_loop_length, len(sequence) + 1):
             for i in range(1, len(sequence) - l + 1):
                 j = i + l
-                print("%d, %d" % (i,j))
+                # print("%d, %d" % (i,j))
                 # i and j are the indices iterated in diagonal
                 case_dist = [(d[i][j-1].value, (i, j, None), Case.UNPAIRED)]
                 
                 for k in range(i, j):
                     if self._is_base_pair(sequence[k-1],sequence[j-1]):
-                        if i == 1 and j == 4:
-                            print("%d, %d, %d, %s, %s" % (i, j, k, sequence[k-1], sequence[j-1]))
                         case_dist.append((d[i][k-1].value + d[k+1][j-1].value + 1, (i, j, k), Case.PAIRED_SUCCESS))
         
                 result_sequence = Max(case_dist)
-
-                if l == 2:
-                    print(result_sequence)
 
                 # store result of the recursion
                 d[i][j].SetValue(result_sequence[0][0])  # set value
@@ -63,14 +58,14 @@ class Nussinov(NussinovBase):
                 for result_case in result_sequence:
                     d[i][j].AddPredecessor(result_case[1], result_case[2])
         
-        print()
-        for i in range(len(sequence) + 1):
-            for j in range(len(sequence) + 1):
-                print("%4d" % (d[i][j].value), end='')
-            print()
+        #print()
+        #for i in range(len(sequence) + 1):
+        #    for j in range(len(sequence) + 1):
+        #        print("%4d" % (d[i][j].value), end='')
+        #    print()
 
 
-    def traceback_rec(self, d, i, j, structure_index=0, abstract_structures=[(0, None)], complete_traceback=False):
+    def traceback_rec(self, d, i, j, abstract_structures=[], complete_traceback=False):
         """Computes abstract treelike structure representation of all optimal pairing.
                 
         Initial call: traceback_rec(d, 0, len(sequence), 0, [(0, None)])
@@ -87,19 +82,16 @@ class Nussinov(NussinovBase):
         """
         current_cell = d[i][j]
         if not self._is_traceback_base_case(current_cell):
-            for (i, j, k), case in current_cell.pre:
-                # copy the structure because of multiple predecessor
-                if case == Case.UNPAIRED:
-                    self.traceback_rec(d, i, j-1, structure_index, abstract_structures, complete_traceback)
-                elif case == Case.PAIRED_SUCCESS:
-                    abstract_structures.append((structure_index, (j, k)))
-                    # print("%d, %d, %d" % (structure_index, j, k))
-                    self.traceback_rec(d, i, k-1, len(abstract_structures) - 1, abstract_structures, complete_traceback)
-                    self.traceback_rec(d, k + 1, j - 1, len(abstract_structures) - 1, abstract_structures, complete_traceback)
-                if not complete_traceback:
-                    break
+            (i, j, k), case = current_cell.pre[0]
+            # copy the structure because of multiple predecessor
+            if case == Case.UNPAIRED:
+                self.traceback_rec(d, i, j-1, abstract_structures)
+            elif case == Case.PAIRED_SUCCESS:
+                abstract_structures.append((j, k))
+                # print("%d, %d, %d" % (structure_index, j, k))
+                self.traceback_rec(d, i, k-1, abstract_structures)
+                self.traceback_rec(d, k + 1, j - 1, abstract_structures)
         return abstract_structures
-        # .(.)(..).  missing (10, (6, 7))
 
 
     def _is_traceback_base_case(self, cell):
@@ -132,9 +124,7 @@ class Nussinov(NussinovBase):
 
         self.fill_matrix(d, sequence)
 
-        abstract_structures = self.traceback_rec(d, 1, len(sequence), 0, [(0, None)], complete_traceback) 
-
-        print(abstract_structures)
+        abstract_structures = self.traceback_rec(d, 1, len(sequence), []) 
 
         return abstract_structures, d[1][len(sequence)].value
     
@@ -147,22 +137,13 @@ class Nussinov(NussinovBase):
           amount_pairs (int): The amount of base pair in optimal abstract structure
           abstract_structures (list(tuple(int,tuple(int,int)))): pointer to head recursion + a tuples of base pairings
         """
-        structures = []
         # track which abstract structures are already consumed
         # print(abstract_structures)
-        for index, (j, k) in reversed(abstract_structures[1:]):
-            count = 0
-            r = ["."] * len(sequence)
-            while True:
-                r[j-1] = ")"
-                r[k-1] = "("
-                count += 1
-                if count == amount_pairs:
-                    structures.append("".join(r))
-                if abstract_structures[index][1] == None:
-                    break
-                index, (j, k) = abstract_structures[index]
-        return structures
+        r = ["."] * len(sequence)
+        for j, k in abstract_structures:
+            r[j-1] = ")"
+            r[k-1] = "("
+        return ["".join(r)]
 
 
     def run(self,
@@ -194,7 +175,6 @@ class Nussinov(NussinovBase):
         return results, amount_pairs
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Nussinov command line tool")
     parser.add_argument("seq_fasta_fn", type=str)
@@ -219,7 +199,6 @@ if __name__ == "__main__":
 
         structures = results[i]
         amount = amount_pairs[i]
-        print(amount)
 
         print("Optimal structures for sequence %s" % (seqID))
         print("Amount of base pairs: %d" % amount)
@@ -228,3 +207,4 @@ if __name__ == "__main__":
         for structure in structures:
             print(structure)
         print()
+        
